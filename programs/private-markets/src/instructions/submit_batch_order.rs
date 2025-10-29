@@ -43,12 +43,19 @@ pub fn handler(
     // In production, this would:
     // 1. Store order commitment in a merkle tree
     // 2. Update batch_order_root with new merkle root
-    // For now, we just update the count
+    // For now, we update the count and fold commitment into a pseudo-root (XOR)
 
     market.batch_order_count = market
         .batch_order_count
         .checked_add(1)
         .ok_or(MarketError::Overflow)?;
+
+    // pseudo-root: XOR with incoming commitment (placeholder only)
+    let mut new_root = market.batch_order_root;
+    for i in 0..32 {
+        new_root[i] ^= order_commitment[i];
+    }
+    market.batch_order_root = new_root;
 
     msg!(
         "Batch order submitted for market {} by user {}",
