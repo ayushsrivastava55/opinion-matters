@@ -139,7 +139,21 @@ describe("private-markets", () => {
       1000 * 1e6 // 1000 USDC
     );
 
-    // Deposit collateral
+    // Create user YES/NO token accounts
+    const userYes = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      user,
+      yesMint,
+      user.publicKey
+    );
+    const userNo = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      user,
+      noMint,
+      user.publicKey
+    );
+
+    // Deposit collateral (mints outcome pair 1:1)
     const depositAmount = new anchor.BN(100 * 1e6); // 100 USDC
     const tx = await program.methods
       .depositCollateral(depositAmount)
@@ -147,6 +161,10 @@ describe("private-markets", () => {
         market: marketPda,
         collateralVault,
         userCollateral: userCollateral.address,
+        yesMint,
+        noMint,
+        userYesTokens: userYes.address,
+        userNoTokens: userNo.address,
         user: user.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
@@ -160,6 +178,12 @@ describe("private-markets", () => {
       collateralVault
     );
     assert.equal(vaultAccount.value.uiAmount, 100);
+
+    // Verify outcome tokens minted 1:1
+    const yesBal = await provider.connection.getTokenAccountBalance(userYes.address);
+    const noBal = await provider.connection.getTokenAccountBalance(userNo.address);
+    assert.equal(yesBal.value.uiAmount, 100);
+    assert.equal(noBal.value.uiAmount, 100);
 
     console.log("Vault balance verified:", vaultAccount.value.uiAmount);
   });
