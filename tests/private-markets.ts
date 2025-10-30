@@ -367,6 +367,22 @@ describe("private-markets", () => {
     assert.equal(resolutionMarketAccount.attestationCount, 1);
 
     await program.methods
+      .submitAttestation(Buffer.from("resolver-one-attestation-repeat"))
+      .accounts({
+        market: resolutionMarketPda,
+        resolver: firstResolver.resolverPda,
+        authority: firstResolver.keypair.publicKey,
+      })
+      .signers([firstResolver.keypair])
+      .rpc();
+
+    resolutionMarketAccount = await program.account.market.fetch(
+      resolutionMarketPda
+    );
+    assert.isTrue("awaitingAttestation" in resolutionMarketAccount.resolutionState);
+    assert.equal(resolutionMarketAccount.attestationCount, 1);
+
+    await program.methods
       .submitAttestation(Buffer.from("resolver-two-attestation"))
       .accounts({
         market: resolutionMarketPda,

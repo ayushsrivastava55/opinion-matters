@@ -19,7 +19,6 @@ pub struct SubmitAttestation<'info> {
         seeds = [RESOLVER_SEED, market.key().as_ref(), authority.key().as_ref()],
         bump = resolver.bump,
         constraint = resolver.market == market.key() @ MarketError::Unauthorized,
-        constraint = !resolver.has_attested @ MarketError::InvalidAttestation
     )]
     pub resolver: Account<'info, Resolver>,
 
@@ -51,6 +50,8 @@ pub fn handler(
         market.resolution_state = ResolutionState::AwaitingAttestation;
     }
 
+    let first_attestation = !resolver.has_attested;
+
     // Store attestation commitment (hash of encrypted attestation)
     // In production, compute proper hash
     let mut attestation_commitment = [0u8; 32];
@@ -59,7 +60,7 @@ pub fn handler(
 
     resolver.attestation_commitment = attestation_commitment;
 
-    if !resolver.has_attested {
+    if first_attestation {
         market.attestation_count = market
             .attestation_count
             .checked_add(1)
