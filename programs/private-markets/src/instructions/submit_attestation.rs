@@ -7,9 +7,10 @@ use anchor_lang::prelude::*;
 pub struct SubmitAttestation<'info> {
     #[account(
         mut,
-        constraint = market.resolution_state == ResolutionState::Active
-            || market.resolution_state == ResolutionState::AwaitingAttestation
-            @ MarketError::MarketAlreadyResolved
+        constraint = matches!(
+            market.resolution_state,
+            ResolutionState::Active | ResolutionState::AwaitingAttestation
+        ) @ MarketError::MarketAlreadyResolved
     )]
     pub market: Account<'info, Market>,
 
@@ -18,7 +19,6 @@ pub struct SubmitAttestation<'info> {
         seeds = [RESOLVER_SEED, market.key().as_ref(), authority.key().as_ref()],
         bump = resolver.bump,
         constraint = resolver.market == market.key() @ MarketError::Unauthorized,
-        constraint = !resolver.has_attested @ MarketError::InvalidAttestation
     )]
     pub resolver: Account<'info, Resolver>,
 
@@ -47,6 +47,8 @@ pub fn handler(ctx: Context<SubmitAttestation>, encrypted_attestation: Vec<u8>) 
         market.resolution_state = ResolutionState::AwaitingAttestation;
     }
 
+    let first_attestation = !resolver.has_attested;
+
     // Store attestation commitment (hash of encrypted attestation)
     // In production, compute proper hash
     let mut attestation_commitment = [0u8; 32];
@@ -54,6 +56,14 @@ pub fn handler(ctx: Context<SubmitAttestation>, encrypted_attestation: Vec<u8>) 
     attestation_commitment[..len].copy_from_slice(&encrypted_attestation[..len]);
 
     resolver.attestation_commitment = attestation_commitment;
+
+    if first_attestation {
+        market.attestation_count = market
+            .attestation_count
+            .checked_add(1)
+            .ok_or(MarketError::Overflow)?;
+    }
+
     resolver.has_attested = true;
 
     msg!(
@@ -63,7 +73,7 @@ pub fn handler(ctx: Context<SubmitAttestation>, encrypted_attestation: Vec<u8>) 
     );
 
     // Check if we have enough attestations to trigger MPC resolution
-    let attested_count = market.resolver_count; // Simplified: assume all staked resolvers attest
+    let attested_count = market.attestation_count;
     if attested_count >= market.resolver_quorum {
         market.resolution_state = ResolutionState::Computing;
         msg!("Quorum reached. Market ready for MPC resolution.");
