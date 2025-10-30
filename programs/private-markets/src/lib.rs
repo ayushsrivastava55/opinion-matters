@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 
-pub mod state;
-pub mod instructions;
-pub mod error;
 pub mod constants;
+pub mod error;
+pub mod instructions;
+pub mod state;
 
 use instructions::*;
 use state::*;
@@ -34,10 +34,7 @@ pub mod private_markets {
     }
 
     /// Deposit collateral into a market
-    pub fn deposit_collateral(
-        ctx: Context<DepositCollateral>,
-        amount: u64,
-    ) -> Result<()> {
+    pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> Result<()> {
         instructions::deposit_collateral::handler(ctx, amount)
     }
 
@@ -67,10 +64,7 @@ pub mod private_markets {
     }
 
     /// Stake tokens to become a resolver
-    pub fn stake_resolver(
-        ctx: Context<StakeResolver>,
-        amount: u64,
-    ) -> Result<()> {
+    pub fn stake_resolver(ctx: Context<StakeResolver>, amount: u64) -> Result<()> {
         instructions::stake_resolver::handler(ctx, amount)
     }
 
@@ -92,11 +86,13 @@ pub mod private_markets {
     }
 
     /// Redeem outcome tokens for collateral
-    pub fn redeem_tokens(
-        ctx: Context<RedeemTokens>,
-        amount: u64,
-    ) -> Result<()> {
+    pub fn redeem_tokens(ctx: Context<RedeemTokens>, amount: u64) -> Result<()> {
         instructions::redeem_tokens::handler(ctx, amount)
+    }
+
+    /// Mint outcome tokens to a recipient account
+    pub fn mint_outcome_tokens(ctx: Context<MintOutcomeTokens>, amount: u64) -> Result<()> {
+        instructions::mint_outcome_tokens::handler(ctx, amount)
     }
 
     /// Update CFMM state from private trade computation
