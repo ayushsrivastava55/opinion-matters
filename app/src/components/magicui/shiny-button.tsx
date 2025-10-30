@@ -15,8 +15,8 @@ export function ShinyButton({ className, children, ...props }: ShinyButtonProps)
       whileTap={{ scale: 0.98 }}
       className={cn(
         "relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full px-6 text-sm font-semibold tracking-wide text-white transition-colors",
-        "bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-400",
-        "shadow-[0_10px_40px_rgba(56,189,248,0.35)]",
+        "bg-gradient-to-r from-orange-500 via-rose-500 to-amber-400",
+        "shadow-[0_10px_40px_rgba(251,146,60,0.35)]",
         className
       )}
       {...props}

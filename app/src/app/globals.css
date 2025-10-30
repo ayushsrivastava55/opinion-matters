@@ -4,23 +4,20 @@
   color-scheme: dark;
   --background: 4 30% 6%;
   --foreground: 210 40% 98%;
+  --border: 215 20% 65%;
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply min-h-screen bg-black text-white antialiased;
-    background-image: radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.2) 0, transparent 45%),
-      radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.18) 0, transparent 40%),
-      radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.22) 0, transparent 42%),
-      linear-gradient(180deg, rgba(2, 6, 23, 0.9), rgba(3, 7, 18, 1));
+    @apply min-h-screen bg-gray-950 text-white antialiased;
+    background-image: radial-gradient(circle at 20% 20%, rgba(251, 146, 60, 0.2) 0, transparent 50%),
+      radial-gradient(circle at 80% 0%, rgba(244, 63, 94, 0.15) 0, transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(251, 191, 36, 0.12) 0, transparent 50%),
+      linear-gradient(180deg, rgb(17 24 39), rgb(31 41 55));
   }
 
   ::selection {
-    @apply bg-purple-500/40 text-white;
+    @apply bg-orange-500/40 text-white;
   }
 }
 
@@ -30,6 +27,6 @@
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-purple-300 via-blue-200 to-emerald-200 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-orange-400 via-rose-300 to-amber-300 bg-clip-text text-transparent;
   }
 }
