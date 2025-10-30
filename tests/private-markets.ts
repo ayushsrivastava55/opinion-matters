@@ -197,7 +197,7 @@ describe("private-markets", () => {
 
   it("Submits a batch order", async () => {
     const user = Keypair.generate();
-    
+
     // Airdrop SOL
     const signature = await provider.connection.requestAirdrop(
       user.publicKey,
@@ -223,5 +223,229 @@ describe("private-markets", () => {
     // Verify batch order count
     const marketAccount = await program.account.market.fetch(marketPda);
     assert.equal(marketAccount.batchOrderCount, 1);
+  });
+
+  it("Redeems winning tokens", async () => {
+    const redeemMarketAuthority = Keypair.generate();
+
+    const airdropRedeemAuthority = await provider.connection.requestAirdrop(
+      redeemMarketAuthority.publicKey,
+      2 * LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(airdropRedeemAuthority);
+
+    const [redeemMarketPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("market"), redeemMarketAuthority.publicKey.toBuffer()],
+      program.programId
+    );
+
+    const [redeemCollateralVault] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), redeemMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const [redeemFeeVault] = PublicKey.findProgramAddressSync(
+      [Buffer.from("fee_vault"), redeemMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const [redeemYesMint] = PublicKey.findProgramAddressSync(
+      [Buffer.from("yes_mint"), redeemMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const [redeemNoMint] = PublicKey.findProgramAddressSync(
+      [Buffer.from("no_mint"), redeemMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const now = Math.floor(Date.now() / 1000);
+    const shortEndTime = new anchor.BN(now + 5);
+    const batchInterval = new anchor.BN(60);
+
+    await program.methods
+      .createMarket(
+        "Will the quick resolution test succeed?",
+        shortEndTime,
+        100,
+        batchInterval,
+        1
+      )
+      .accounts({
+        market: redeemMarketPda,
+        collateralVault: redeemCollateralVault,
+        feeVault: redeemFeeVault,
+        yesMint: redeemYesMint,
+        noMint: redeemNoMint,
+        collateralMint,
+        authority: redeemMarketAuthority.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .signers([redeemMarketAuthority])
+      .rpc();
+
+    const redeemer = Keypair.generate();
+    const airdropRedeemer = await provider.connection.requestAirdrop(
+      redeemer.publicKey,
+      2 * LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(airdropRedeemer);
+
+    const redeemerCollateral = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      redeemer,
+      collateralMint,
+      redeemer.publicKey
+    );
+
+    await mintTo(
+      provider.connection,
+      marketAuthority,
+      collateralMint,
+      redeemerCollateral.address,
+      marketAuthority,
+      200 * 1e6
+    );
+
+    const depositAmount = new anchor.BN(200 * 1e6);
+    await program.methods
+      .depositCollateral(depositAmount)
+      .accounts({
+        market: redeemMarketPda,
+        collateralVault: redeemCollateralVault,
+        userCollateral: redeemerCollateral.address,
+        user: redeemer.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([redeemer])
+      .rpc();
+
+    const resolverAuthority = Keypair.generate();
+    const airdropResolver = await provider.connection.requestAirdrop(
+      resolverAuthority.publicKey,
+      LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(airdropResolver);
+
+    const resolverCollateral = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      resolverAuthority,
+      collateralMint,
+      resolverAuthority.publicKey
+    );
+
+    await mintTo(
+      provider.connection,
+      marketAuthority,
+      collateralMint,
+      resolverCollateral.address,
+      marketAuthority,
+      50 * 1e6
+    );
+
+    const [resolverPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("resolver"),
+        redeemMarketPda.toBuffer(),
+        resolverAuthority.publicKey.toBuffer(),
+      ],
+      program.programId
+    );
+
+    const stakeAmount = new anchor.BN(10 * 1e6);
+    await program.methods
+      .stakeResolver(stakeAmount)
+      .accounts({
+        market: redeemMarketPda,
+        resolver: resolverPda,
+        collateralVault: redeemCollateralVault,
+        resolverTokenAccount: resolverCollateral.address,
+        authority: resolverAuthority.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([resolverAuthority])
+      .rpc();
+
+    const redeemerYesTokens = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      redeemer,
+      redeemYesMint,
+      redeemer.publicKey
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 6000));
+
+    const attestationPayload = Buffer.from("winner_yes");
+    await program.methods
+      .submitAttestation([...attestationPayload])
+      .accounts({
+        market: redeemMarketPda,
+        resolver: resolverPda,
+        authority: resolverAuthority.publicKey,
+      })
+      .signers([resolverAuthority])
+      .rpc();
+
+    const arciumAuthority = Keypair.generate();
+    const airdropArcium = await provider.connection.requestAirdrop(
+      arciumAuthority.publicKey,
+      LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(airdropArcium);
+
+    await program.methods
+      .resolveMarket(1, Array.from(Buffer.from("proof")))
+      .accounts({
+        market: redeemMarketPda,
+        arciumAuthority: arciumAuthority.publicKey,
+      })
+      .signers([arciumAuthority])
+      .rpc();
+
+    const mintAmount = new anchor.BN(50 * 1e6);
+    await program.methods
+      .mintOutcomeTokens(mintAmount)
+      .accounts({
+        market: redeemMarketPda,
+        outcomeMint: redeemYesMint,
+        recipientTokenAccount: redeemerYesTokens.address,
+        authority: redeemMarketAuthority.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([redeemMarketAuthority])
+      .rpc();
+
+    const yesBalanceBefore = await provider.connection.getTokenAccountBalance(
+      redeemerYesTokens.address
+    );
+    assert.equal(yesBalanceBefore.value.uiAmount, 50);
+
+    const redeemAmount = new anchor.BN(50 * 1e6);
+    await program.methods
+      .redeemTokens(redeemAmount)
+      .accounts({
+        market: redeemMarketPda,
+        outcomeMint: redeemYesMint,
+        userOutcomeTokens: redeemerYesTokens.address,
+        collateralVault: redeemCollateralVault,
+        userCollateralAccount: redeemerCollateral.address,
+        user: redeemer.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([redeemer])
+      .rpc();
+
+    const yesBalanceAfter = await provider.connection.getTokenAccountBalance(
+      redeemerYesTokens.address
+    );
+    assert.equal(yesBalanceAfter.value.uiAmount, 0);
+
+    const userCollateralAfter = await provider.connection.getTokenAccountBalance(
+      redeemerCollateral.address
+    );
+    assert.equal(userCollateralAfter.value.uiAmount, 50);
   });
 });

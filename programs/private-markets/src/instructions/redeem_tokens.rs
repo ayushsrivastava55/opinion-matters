@@ -1,7 +1,8 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Burn, Mint, Token, TokenAccount, Transfer};
+use crate::constants::MARKET_SEED;
 use crate::error::MarketError;
 use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::{self, Burn, Mint, Token, TokenAccount, Transfer};
 
 #[derive(Accounts)]
 pub struct RedeemTokens<'info> {
@@ -66,18 +67,13 @@ pub fn handler(ctx: Context<RedeemTokens>, amount: u64) -> Result<()> {
     token::burn(cpi_ctx, amount)?;
 
     // Transfer collateral from vault to user (1:1 ratio)
-    let market_key = market.key();
-    let seeds = &[
-        b"vault".as_ref(),
-        market_key.as_ref(),
-        &[market.bump],
-    ];
+    let seeds = &[MARKET_SEED, market.authority.as_ref(), &[market.bump]];
     let signer = &[&seeds[..]];
 
     let cpi_accounts = Transfer {
         from: ctx.accounts.collateral_vault.to_account_info(),
         to: ctx.accounts.user_collateral_account.to_account_info(),
-        authority: ctx.accounts.collateral_vault.to_account_info(),
+        authority: ctx.accounts.market.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);

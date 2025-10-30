@@ -1,14 +1,14 @@
-use anchor_lang::prelude::*;
 use crate::constants::*;
 use crate::error::MarketError;
 use crate::state::*;
+use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct SubmitAttestation<'info> {
     #[account(
         mut,
-        constraint = market.resolution_state == ResolutionState::Active || 
-                     market.resolution_state == ResolutionState::AwaitingAttestation
+        constraint = market.resolution_state == ResolutionState::Active
+            || market.resolution_state == ResolutionState::AwaitingAttestation
             @ MarketError::MarketAlreadyResolved
     )]
     pub market: Account<'info, Market>,
@@ -25,10 +25,7 @@ pub struct SubmitAttestation<'info> {
     pub authority: Signer<'info>,
 }
 
-pub fn handler(
-    ctx: Context<SubmitAttestation>,
-    encrypted_attestation: Vec<u8>,
-) -> Result<()> {
+pub fn handler(ctx: Context<SubmitAttestation>, encrypted_attestation: Vec<u8>) -> Result<()> {
     let market = &mut ctx.accounts.market;
     let resolver = &mut ctx.accounts.resolver;
     let clock = Clock::get()?;
@@ -70,7 +67,7 @@ pub fn handler(
     if attested_count >= market.resolver_quorum {
         market.resolution_state = ResolutionState::Computing;
         msg!("Quorum reached. Market ready for MPC resolution.");
-        
+
         emit!(ResolutionReady {
             market: market.key(),
             attestation_count: attested_count,
