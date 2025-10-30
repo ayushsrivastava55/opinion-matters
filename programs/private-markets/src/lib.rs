@@ -8,7 +8,7 @@ pub mod state;
 use instructions::*;
 use state::*;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro");
 
 #[program]
 pub mod private_markets {

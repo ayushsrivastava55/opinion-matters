@@ -14,7 +14,7 @@ pub struct CreateMarket<'info> {
         seeds = [MARKET_SEED, authority.key().as_ref()],
         bump
     )]
-    pub market: Account<'info, Market>,
+    pub market: Box<Account<'info, Market>>,
 
     #[account(
         init,
@@ -24,7 +24,7 @@ pub struct CreateMarket<'info> {
         token::mint = collateral_mint,
         token::authority = market,
     )]
-    pub collateral_vault: Account<'info, TokenAccount>,
+    pub collateral_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init,
@@ -34,7 +34,7 @@ pub struct CreateMarket<'info> {
         token::mint = collateral_mint,
         token::authority = market,
     )]
-    pub fee_vault: Account<'info, TokenAccount>,
+    pub fee_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init,
@@ -44,7 +44,7 @@ pub struct CreateMarket<'info> {
         mint::decimals = 6,
         mint::authority = market,
     )]
-    pub yes_mint: Account<'info, Mint>,
+    pub yes_mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
@@ -54,9 +54,9 @@ pub struct CreateMarket<'info> {
         mint::decimals = 6,
         mint::authority = market,
     )]
-    pub no_mint: Account<'info, Mint>,
+    pub no_mint: Box<Account<'info, Mint>>,
 
-    pub collateral_mint: Account<'info, Mint>,
+    pub collateral_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     pub authority: Signer<'info>,

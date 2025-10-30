@@ -1,0 +1,15 @@
+[toolchain]
+anchor_version = "0.30.1"
+cluster = "devnet"
+
+[computations]
+private_trade = { offset = 1000 }
+batch_clear = { offset = 2000 }
+resolve_market = { offset = 3000 }
+
+[network]
+cluster = "devnet"
+rpc_url = "https://api.devnet.solana.com"
+
+[build]
+target = "bpfel-unknown-unknown"
