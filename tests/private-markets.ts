@@ -10,6 +10,8 @@ import {
 } from "@solana/spl-token";
 import { assert } from "chai";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 describe("private-markets", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -107,6 +109,7 @@ describe("private-markets", () => {
     assert.equal(marketAccount.feeBps, feeBps);
     assert.equal(marketAccount.resolverQuorum, resolverQuorum);
     assert.equal(marketAccount.resolverCount, 0);
+    assert.equal(marketAccount.attestationCount, 0);
     assert.equal(marketAccount.finalOutcome, 255); // Unresolved
 
     console.log("Market state verified");
@@ -197,7 +200,7 @@ describe("private-markets", () => {
 
   it("Submits a batch order", async () => {
     const user = Keypair.generate();
-    
+
     // Airdrop SOL
     const signature = await provider.connection.requestAirdrop(
       user.publicKey,
@@ -223,5 +226,160 @@ describe("private-markets", () => {
     // Verify batch order count
     const marketAccount = await program.account.market.fetch(marketPda);
     assert.equal(marketAccount.batchOrderCount, 1);
+  });
+
+  it("Only begins resolution after distinct resolvers reach quorum", async () => {
+    const resolutionAuthority = Keypair.generate();
+    const quorum = 2;
+    const endTime = new anchor.BN(Math.floor(Date.now() / 1000) + 8);
+
+    const [resolutionMarketPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("market"), resolutionAuthority.publicKey.toBuffer()],
+      program.programId
+    );
+
+    const [resolutionCollateralVault] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), resolutionMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const [resolutionFeeVault] = PublicKey.findProgramAddressSync(
+      [Buffer.from("fee_vault"), resolutionMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const [resolutionYesMint] = PublicKey.findProgramAddressSync(
+      [Buffer.from("yes_mint"), resolutionMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const [resolutionNoMint] = PublicKey.findProgramAddressSync(
+      [Buffer.from("no_mint"), resolutionMarketPda.toBuffer()],
+      program.programId
+    );
+
+    const signature = await provider.connection.requestAirdrop(
+      resolutionAuthority.publicKey,
+      2 * LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(signature);
+
+    await program.methods
+      .createMarket(
+        "Resolution quorum test",
+        endTime,
+        100,
+        new anchor.BN(3600),
+        quorum
+      )
+      .accounts({
+        market: resolutionMarketPda,
+        collateralVault: resolutionCollateralVault,
+        feeVault: resolutionFeeVault,
+        yesMint: resolutionYesMint,
+        noMint: resolutionNoMint,
+        collateralMint,
+        authority: resolutionAuthority.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .signers([resolutionAuthority])
+      .rpc();
+
+    const resolvers: { keypair: Keypair; resolverPda: PublicKey }[] = [];
+    const stakeAmount = new anchor.BN(10 * 1e6);
+
+    for (let i = 0; i < quorum; i++) {
+      const resolverKeypair = Keypair.generate();
+      const resolverAirdrop = await provider.connection.requestAirdrop(
+        resolverKeypair.publicKey,
+        LAMPORTS_PER_SOL
+      );
+      await provider.connection.confirmTransaction(resolverAirdrop);
+
+      const resolverTokenAccount = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        resolverKeypair,
+        collateralMint,
+        resolverKeypair.publicKey
+      );
+
+      await mintTo(
+        provider.connection,
+        marketAuthority,
+        collateralMint,
+        resolverTokenAccount.address,
+        marketAuthority,
+        20 * 1e6
+      );
+
+      const [resolverPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("resolver"),
+          resolutionMarketPda.toBuffer(),
+          resolverKeypair.publicKey.toBuffer(),
+        ],
+        program.programId
+      );
+
+      await program.methods
+        .stakeResolver(stakeAmount)
+        .accounts({
+          market: resolutionMarketPda,
+          resolver: resolverPda,
+          collateralVault: resolutionCollateralVault,
+          resolverTokenAccount: resolverTokenAccount.address,
+          authority: resolverKeypair.publicKey,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([resolverKeypair])
+        .rpc();
+
+      resolvers.push({ keypair: resolverKeypair, resolverPda });
+    }
+
+    const waitSeconds =
+      endTime.toNumber() - Math.floor(Date.now() / 1000) + 1;
+    if (waitSeconds > 0) {
+      await sleep(waitSeconds * 1000);
+    }
+
+    const [firstResolver, secondResolver] = resolvers;
+
+    await program.methods
+      .submitAttestation(Buffer.from("resolver-one-attestation"))
+      .accounts({
+        market: resolutionMarketPda,
+        resolver: firstResolver.resolverPda,
+        authority: firstResolver.keypair.publicKey,
+      })
+      .signers([firstResolver.keypair])
+      .rpc();
+
+    let resolutionMarketAccount = await program.account.market.fetch(
+      resolutionMarketPda
+    );
+    assert.isTrue(
+      "awaitingAttestation" in resolutionMarketAccount.resolutionState
+    );
+    assert.equal(resolutionMarketAccount.attestationCount, 1);
+
+    await program.methods
+      .submitAttestation(Buffer.from("resolver-two-attestation"))
+      .accounts({
+        market: resolutionMarketPda,
+        resolver: secondResolver.resolverPda,
+        authority: secondResolver.keypair.publicKey,
+      })
+      .signers([secondResolver.keypair])
+      .rpc();
+
+    resolutionMarketAccount = await program.account.market.fetch(
+      resolutionMarketPda
+    );
+    assert.isTrue("computing" in resolutionMarketAccount.resolutionState);
+    assert.equal(resolutionMarketAccount.attestationCount, quorum);
   });
 });

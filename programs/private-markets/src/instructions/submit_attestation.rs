@@ -7,9 +7,10 @@ use crate::state::*;
 pub struct SubmitAttestation<'info> {
     #[account(
         mut,
-        constraint = market.resolution_state == ResolutionState::Active || 
-                     market.resolution_state == ResolutionState::AwaitingAttestation
-            @ MarketError::MarketAlreadyResolved
+        constraint = matches!(
+            market.resolution_state,
+            ResolutionState::Active | ResolutionState::AwaitingAttestation
+        ) @ MarketError::MarketAlreadyResolved
     )]
     pub market: Account<'info, Market>,
 
@@ -57,6 +58,14 @@ pub fn handler(
     attestation_commitment[..len].copy_from_slice(&encrypted_attestation[..len]);
 
     resolver.attestation_commitment = attestation_commitment;
+
+    if !resolver.has_attested {
+        market.attestation_count = market
+            .attestation_count
+            .checked_add(1)
+            .ok_or(MarketError::Overflow)?;
+    }
+
     resolver.has_attested = true;
 
     msg!(
@@ -66,11 +75,11 @@ pub fn handler(
     );
 
     // Check if we have enough attestations to trigger MPC resolution
-    let attested_count = market.resolver_count; // Simplified: assume all staked resolvers attest
+    let attested_count = market.attestation_count;
     if attested_count >= market.resolver_quorum {
         market.resolution_state = ResolutionState::Computing;
         msg!("Quorum reached. Market ready for MPC resolution.");
-        
+
         emit!(ResolutionReady {
             market: market.key(),
             attestation_count: attested_count,

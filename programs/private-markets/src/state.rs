@@ -27,6 +27,9 @@ pub struct Market {
     
     /// Number of resolvers currently staked
     pub resolver_count: u8,
+
+    /// Number of resolvers who have submitted an attestation
+    pub attestation_count: u8,
     
     /// Collateral vault
     pub collateral_vault: Pubkey,
@@ -78,6 +81,7 @@ impl Market {
         8 + // next_batch_clear
         1 + // resolver_quorum
         1 + // resolver_count
+        1 + // attestation_count
         32 + // collateral_vault
         32 + // fee_vault
         32 + // yes_mint

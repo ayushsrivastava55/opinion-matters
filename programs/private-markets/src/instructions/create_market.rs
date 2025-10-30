@@ -108,6 +108,7 @@ pub fn handler(
     market.next_batch_clear = clock.unix_timestamp + batch_interval;
     market.resolver_quorum = resolver_quorum;
     market.resolver_count = 0;
+    market.attestation_count = 0;
     market.collateral_vault = ctx.accounts.collateral_vault.key();
     market.fee_vault = ctx.accounts.fee_vault.key();
     market.yes_mint = ctx.accounts.yes_mint.key();
