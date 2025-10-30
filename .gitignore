@@ -53,3 +53,5 @@ computation_cache/
 # Next.js
 .next/
 *.md
+!README.md
+!**/README.md
