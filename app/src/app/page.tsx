@@ -20,16 +20,6 @@ import { ShinyButton } from '@/components/magicui/shiny-button'
 import { NoSSR } from '@/components/no-ssr'
 import { WalletButton } from '@/components/wallet-button'
 import Link from 'next/link'
-
-type TimestampLike = { toString: () => string }
-
-type EmptyState = Record<string, never>
-
-type ResolutionState =
-  | { active: EmptyState }
-  | { awaitingAttestation: EmptyState }
-  | { computing: EmptyState }
-  | { resolved: { finalOutcome: number } }
 const heroStats = [
   {
     label: 'Encrypted volume settled',
