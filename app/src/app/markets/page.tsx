@@ -1,6 +1,6 @@
 "use client"
 
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import Head from 'next/head'
 import Link from 'next/link'
 import {
@@ -22,6 +22,16 @@ import { ShinyButton } from '@/components/magicui/shiny-button'
 import { NoSSR } from '@/components/no-ssr'
 import { WalletButton } from '@/components/wallet-button'
 import type { MarketRecord, MarketResolutionState } from '@/lib/market-types'
+import { getAnchorProgram } from '@/lib/anchor-client'
+import { Buffer } from 'buffer'
+import { BN } from '@coral-xyz/anchor'
+import {
+  TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  getMint,
+} from '@solana/spl-token'
+import { PublicKey, Transaction } from '@solana/web3.js'
 
 const formatAbbrevCurrency = (value: number) => {
   if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`
@@ -82,9 +92,10 @@ const calculateYesPrice = (yesReserves: number, noReserves: number) => {
 type MarketCardProps = {
   market: MarketRecord
   isConnected: boolean
+  onTrade: (market: MarketRecord) => void
 }
 
-const MarketCard = memo(function MarketCard({ market, isConnected }: MarketCardProps) {
+const MarketCard = memo(function MarketCard({ market, isConnected, onTrade }: MarketCardProps) {
   const yesPrice = useMemo(
     () => calculateYesPrice(market.yesReserves, market.noReserves),
     [market.noReserves, market.yesReserves],
@@ -127,7 +138,11 @@ const MarketCard = memo(function MarketCard({ market, isConnected }: MarketCardP
       </div>
 
       {isConnected ? (
-        <ShinyButton type="button" className="mt-6 w-full justify-center">
+        <ShinyButton
+          type="button"
+          className="mt-6 w-full justify-center"
+          onClick={() => onTrade(market)}
+        >
           Trade now
           <ArrowRight className="h-4 w-4" />
         </ShinyButton>
@@ -155,10 +170,17 @@ const StatGrid = ({ children }: PropsWithChildren) => (
 
 export default function MarketsPage() {
   const { connected } = useWallet()
+  const { connection } = useConnection()
+  const wallet = useWallet()
   const [markets, setMarkets] = useState<MarketRecord[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
+  const [tradingMarket, setTradingMarket] = useState<MarketRecord | null>(null)
+  const [tradeBusy, setTradeBusy] = useState(false)
+  const [tradeError, setTradeError] = useState<string | null>(null)
+  const [tradeSide, setTradeSide] = useState<'YES' | 'NO'>('YES')
+  const [tradeAmount, setTradeAmount] = useState<number>(10)
   const deferredMarkets = useDeferredValue(markets)
   const [isPending, startTransition] = useTransition()
 
@@ -210,6 +232,116 @@ export default function MarketsPage() {
   const handleRefresh = useCallback(() => {
     loadMarkets()
   }, [loadMarkets])
+
+  const handleTrade = useCallback((market: MarketRecord) => {
+    setTradingMarket(market)
+  }, [])
+
+  const submitTrade = useCallback(async () => {
+    if (!tradingMarket || !wallet.publicKey) return
+    setTradeBusy(true)
+    setTradeError(null)
+    try {
+      const program = await getAnchorProgram(connection, wallet as any)
+      // Preflight: ensure market exists on-chain to avoid wallet sim reverts
+      const marketPk = new PublicKey(tradingMarket.marketPublicKey)
+      try {
+        await (program.account as any).market.fetch(marketPk)
+      } catch (_) {
+        throw new Error('This market is not deployed on-chain. Please refresh or pick another market.')
+      }
+      const order = { side: tradeSide, amount: tradeAmount, slippage: 0.01 }
+      const encoder = new TextEncoder()
+      const payload = encoder.encode(JSON.stringify(order))
+
+      await program.methods
+        .submitPrivateTrade(Buffer.from(payload))
+        .accounts({
+          market: marketPk,
+          user: wallet.publicKey,
+        })
+        .rpc()
+
+      setTradingMarket(null)
+      // Refresh list after submit
+      loadMarkets()
+    } catch (e: any) {
+      console.error('Trade failed', e)
+      const logs = e?.transactionLogs ? `\nLogs: ${e.transactionLogs.join('\n')}` : ''
+      setTradeError((e?.message || 'Failed to submit trade') + logs)
+    } finally {
+      setTradeBusy(false)
+    }
+  }, [connection, loadMarkets, tradeAmount, tradeSide, tradingMarket, wallet])
+
+  const ensureAta = useCallback(
+    async (mint: PublicKey): Promise<PublicKey> => {
+      if (!wallet.publicKey) throw new Error('Wallet not connected')
+      const ata = await getAssociatedTokenAddress(mint, wallet.publicKey)
+      const info = await connection.getAccountInfo(ata)
+      if (info) return ata
+
+      const ix = createAssociatedTokenAccountInstruction(
+        wallet.publicKey,
+        ata,
+        wallet.publicKey,
+        mint,
+      )
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized')
+      const tx = new Transaction({ feePayer: wallet.publicKey, recentBlockhash: blockhash })
+      tx.add(ix)
+      const signed = await wallet.signTransaction!(tx)
+      const sig = await connection.sendRawTransaction(signed.serialize())
+      await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed')
+      return ata
+    },
+    [connection, wallet],
+  )
+
+  const depositCollateral = useCallback(async () => {
+    if (!tradingMarket || !wallet.publicKey) return
+    setTradeBusy(true)
+    setTradeError(null)
+    try {
+      const program = await getAnchorProgram(connection, wallet as any)
+      const marketPk = new PublicKey(tradingMarket.marketPublicKey)
+      const marketAccount: any = await (program.account as any).market.fetch(marketPk)
+      const collateralVault = marketAccount.collateralVault as PublicKey
+
+      // Fetch vault token account to learn the collateral mint
+      const vaultInfo = await connection.getParsedAccountInfo(collateralVault)
+      const parsed = (vaultInfo.value?.data as any)?.parsed
+      const mintStr: string | undefined = parsed?.info?.mint
+      if (!mintStr) throw new Error('Unable to resolve collateral mint')
+      const mintPk = new PublicKey(mintStr)
+
+      // Ensure user ATA exists
+      const userAta = await ensureAta(mintPk)
+
+      // Scale amount by mint decimals
+      const mint = await getMint(connection, mintPk)
+      const decimals = mint.decimals ?? 6
+      const scaled = new BN(Math.floor(Number(tradeAmount) * 10 ** decimals))
+
+      await program.methods
+        .depositCollateral(scaled)
+        .accounts({
+          market: marketPk,
+          collateralVault: collateralVault,
+          userCollateral: userAta,
+          user: wallet.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .rpc()
+
+      // No modal close; allow immediate trade if desired
+    } catch (e: any) {
+      console.error('Deposit failed', e)
+      setTradeError(e?.message || 'Failed to deposit collateral')
+    } finally {
+      setTradeBusy(false)
+    }
+  }, [connection, ensureAta, tradeAmount, tradingMarket, wallet])
 
   const stats = useMemo(() => {
     const totalMarkets = deferredMarkets.length
@@ -311,7 +443,7 @@ export default function MarketsPage() {
                   transition={{ delay: 0.2, duration: 0.7 }}
                   className="max-w-2xl text-lg text-white/70"
                 >
-                  Trade on outcomes without revealing your positions. Markets stream from Neon Postgres and stay encrypted until
+                  Trade on outcomes without revealing your positions. Markets update in real time and stay encrypted until
                   settlement on Solana.
                 </motion.p>
 
@@ -373,7 +505,7 @@ export default function MarketsPage() {
                 ) : (
                   <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                     {deferredMarkets.map((market) => (
-                      <MarketCard key={market.id} market={market} isConnected={connected} />
+                      <MarketCard key={market.id} market={market} isConnected={connected} onTrade={handleTrade} />
                     ))}
                   </div>
                 )}
@@ -427,6 +559,75 @@ export default function MarketsPage() {
           </footer>
         </div>
       </AuroraBackground>
+      {tradingMarket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-black/80 p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.35em] text-white/50">Private order</p>
+                <h3 className="mt-1 text-lg font-semibold text-white line-clamp-2">{tradingMarket.question}</h3>
+              </div>
+              <button
+                onClick={() => setTradingMarket(null)}
+                className="rounded-lg border border-white/10 px-3 py-1 text-sm text-white/70 hover:bg-white/10"
+              >
+                Close
+              </button>
+            </div>
+            <div className="mt-5 space-y-4">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setTradeSide('YES')}
+                  className={`rounded-xl px-4 py-2 text-sm ${tradeSide === 'YES' ? 'bg-orange-500/20 text-white' : 'bg-white/10 text-white/70 hover:bg-white/15'}`}
+                >
+                  YES
+                </button>
+                <button
+                  onClick={() => setTradeSide('NO')}
+                  className={`rounded-xl px-4 py-2 text-sm ${tradeSide === 'NO' ? 'bg-orange-500/20 text-white' : 'bg-white/10 text-white/70 hover:bg-white/15'}`}
+                >
+                  NO
+                </button>
+              </div>
+              <div>
+                <label className="block text-xs text-white/60">Amount</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={tradeAmount}
+                  onChange={(e) => setTradeAmount(Number(e.target.value))}
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-white outline-none focus:border-white/20"
+                />
+              </div>
+              {tradeError && (
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-200">
+                  {tradeError}
+                </div>
+              )}
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={depositCollateral}
+                  disabled={tradeBusy}
+                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/10 disabled:opacity-60"
+                >
+                  {tradeBusy ? 'Processing…' : 'Deposit'}
+                </button>
+                <button
+                  onClick={submitTrade}
+                  disabled={tradeBusy}
+                  className="rounded-xl bg-gradient-to-r from-orange-500 via-rose-500 to-amber-400 px-4 py-2 text-sm text-white disabled:opacity-60"
+                >
+                  {tradeBusy ? 'Submitting…' : 'Submit trade'}
+                </button>
+              </div>
+              <p className="text-xs text-white/50">
+                Orders are encrypted client‑side and processed by Arcium. The on‑chain program stores a state commitment and
+                public aggregates.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

@@ -1,0 +1,1283 @@
+{
+  "accounts": [
+    {
+      "discriminator": [
+        219,
+        190,
+        213,
+        55,
+        0,
+        227,
+        198,
+        154
+      ],
+      "name": "Market"
+    },
+    {
+      "discriminator": [
+        108,
+        125,
+        211,
+        206,
+        52,
+        124,
+        132,
+        79
+      ],
+      "name": "Resolver"
+    }
+  ],
+  "address": "G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro",
+  "errors": [
+    {
+      "code": 6000,
+      "msg": "Question exceeds maximum length",
+      "name": "QuestionTooLong"
+    },
+    {
+      "code": 6001,
+      "msg": "Invalid end time (must be in the future)",
+      "name": "InvalidEndTime"
+    },
+    {
+      "code": 6002,
+      "msg": "Fee basis points out of range",
+      "name": "InvalidFeeBps"
+    },
+    {
+      "code": 6003,
+      "msg": "Batch interval out of range",
+      "name": "InvalidBatchInterval"
+    },
+    {
+      "code": 6004,
+      "msg": "Market has already ended",
+      "name": "MarketEnded"
+    },
+    {
+      "code": 6005,
+      "msg": "Market has not ended yet",
+      "name": "MarketNotEnded"
+    },
+    {
+      "code": 6006,
+      "msg": "Market is already resolved",
+      "name": "MarketAlreadyResolved"
+    },
+    {
+      "code": 6007,
+      "msg": "Market is not resolved yet",
+      "name": "MarketNotResolved"
+    },
+    {
+      "code": 6008,
+      "msg": "Insufficient collateral",
+      "name": "InsufficientCollateral"
+    },
+    {
+      "code": 6009,
+      "msg": "Invalid resolver quorum",
+      "name": "InvalidQuorum"
+    },
+    {
+      "code": 6010,
+      "msg": "Not enough resolvers staked",
+      "name": "InsufficientResolvers"
+    },
+    {
+      "code": 6011,
+      "msg": "Resolver already staked",
+      "name": "ResolverAlreadyStaked"
+    },
+    {
+      "code": 6012,
+      "msg": "Invalid attestation",
+      "name": "InvalidAttestation"
+    },
+    {
+      "code": 6013,
+      "msg": "Batch clearing window has not ended",
+      "name": "BatchWindowOpen"
+    },
+    {
+      "code": 6014,
+      "msg": "Invalid state commitment",
+      "name": "InvalidStateCommitment"
+    },
+    {
+      "code": 6015,
+      "msg": "Arithmetic overflow",
+      "name": "Overflow"
+    },
+    {
+      "code": 6016,
+      "msg": "Invalid outcome value",
+      "name": "InvalidOutcome"
+    },
+    {
+      "code": 6017,
+      "msg": "Unauthorized",
+      "name": "Unauthorized"
+    },
+    {
+      "code": 6018,
+      "msg": "Invalid CFMM state",
+      "name": "InvalidCfmmState"
+    },
+    {
+      "code": 6019,
+      "msg": "Slippage tolerance exceeded",
+      "name": "SlippageExceeded"
+    }
+  ],
+  "events": [
+    {
+      "discriminator": [
+        8,
+        207,
+        38,
+        149,
+        136,
+        1,
+        85,
+        160
+      ],
+      "name": "BatchCleared"
+    },
+    {
+      "discriminator": [
+        249,
+        173,
+        234,
+        88,
+        251,
+        88,
+        174,
+        17
+      ],
+      "name": "BatchOrderSubmitted"
+    },
+    {
+      "discriminator": [
+        89,
+        67,
+        230,
+        95,
+        143,
+        106,
+        199,
+        202
+      ],
+      "name": "MarketResolved"
+    },
+    {
+      "discriminator": [
+        229,
+        63,
+        108,
+        44,
+        215,
+        100,
+        193,
+        218
+      ],
+      "name": "PrivateTradeSubmitted"
+    },
+    {
+      "discriminator": [
+        52,
+        13,
+        189,
+        50,
+        35,
+        187,
+        224,
+        26
+      ],
+      "name": "ResolutionReady"
+    }
+  ],
+  "instructions": [
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "docs": [
+            "Arcium MPC authority (in production, verify signature)"
+          ],
+          "name": "arcium_authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_state_commitment",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "uniform_price",
+          "type": "u64"
+        }
+      ],
+      "discriminator": [
+        106,
+        52,
+        52,
+        243,
+        85,
+        254,
+        145,
+        247
+      ],
+      "docs": [
+        "Apply batch clear results from Arcium MPC"
+      ],
+      "name": "apply_batch_clear"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          },
+          "writable": true
+        },
+        {
+          "name": "collateral_vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          },
+          "writable": true
+        },
+        {
+          "name": "fee_vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          },
+          "writable": true
+        },
+        {
+          "name": "yes_mint",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  121,
+                  101,
+                  115,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          },
+          "writable": true
+        },
+        {
+          "name": "no_mint",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  111,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          },
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "writable": true
+        },
+        {
+          "address": "11111111111111111111111111111111",
+          "name": "system_program"
+        },
+        {
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "name": "token_program"
+        },
+        {
+          "address": "SysvarRent111111111111111111111111111111111",
+          "name": "rent"
+        }
+      ],
+      "args": [
+        {
+          "name": "question",
+          "type": "string"
+        },
+        {
+          "name": "end_time",
+          "type": "i64"
+        },
+        {
+          "name": "fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "batch_interval",
+          "type": "i64"
+        },
+        {
+          "name": "resolver_quorum",
+          "type": "u8"
+        }
+      ],
+      "discriminator": [
+        103,
+        226,
+        97,
+        235,
+        200,
+        188,
+        251,
+        254
+      ],
+      "docs": [
+        "Initialize a new prediction market"
+      ],
+      "name": "create_market"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market"
+        },
+        {
+          "name": "collateral_vault",
+          "writable": true
+        },
+        {
+          "name": "user_collateral",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "signer": true,
+          "writable": true
+        },
+        {
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ],
+      "discriminator": [
+        156,
+        131,
+        142,
+        116,
+        146,
+        247,
+        162,
+        120
+      ],
+      "docs": [
+        "Deposit collateral into a market"
+      ],
+      "name": "deposit_collateral"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "outcome_mint",
+          "writable": true
+        },
+        {
+          "name": "recipient_token_account",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "relations": [
+            "market"
+          ],
+          "signer": true
+        },
+        {
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ],
+      "discriminator": [
+        27,
+        243,
+        237,
+        46,
+        2,
+        226,
+        144,
+        209
+      ],
+      "docs": [
+        "Mint outcome tokens to a recipient account"
+      ],
+      "name": "mint_outcome_tokens"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market"
+        },
+        {
+          "name": "outcome_mint",
+          "writable": true
+        },
+        {
+          "name": "user_outcome_tokens",
+          "writable": true
+        },
+        {
+          "name": "collateral_vault",
+          "writable": true
+        },
+        {
+          "name": "user_collateral_account",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "signer": true,
+          "writable": true
+        },
+        {
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ],
+      "discriminator": [
+        246,
+        98,
+        134,
+        41,
+        152,
+        33,
+        120,
+        69
+      ],
+      "docs": [
+        "Redeem outcome tokens for collateral"
+      ],
+      "name": "redeem_tokens"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "docs": [
+            "Arcium MPC authority (in production, verify signature)"
+          ],
+          "name": "arcium_authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "final_outcome",
+          "type": "u8"
+        },
+        {
+          "name": "resolution_proof",
+          "type": "bytes"
+        }
+      ],
+      "discriminator": [
+        155,
+        23,
+        80,
+        173,
+        46,
+        74,
+        23,
+        239
+      ],
+      "docs": [
+        "Apply resolution results from Arcium MPC"
+      ],
+      "name": "resolve_market"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "resolver",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          },
+          "writable": true
+        },
+        {
+          "name": "collateral_vault",
+          "writable": true
+        },
+        {
+          "name": "resolver_token_account",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "writable": true
+        },
+        {
+          "address": "11111111111111111111111111111111",
+          "name": "system_program"
+        },
+        {
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ],
+      "discriminator": [
+        81,
+        248,
+        206,
+        93,
+        116,
+        223,
+        41,
+        81
+      ],
+      "docs": [
+        "Stake tokens to become a resolver"
+      ],
+      "name": "stake_resolver"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "resolver",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          },
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "encrypted_attestation",
+          "type": "bytes"
+        }
+      ],
+      "discriminator": [
+        238,
+        220,
+        255,
+        105,
+        183,
+        211,
+        40,
+        83
+      ],
+      "docs": [
+        "Submit encrypted attestation for market resolution"
+      ],
+      "name": "submit_attestation"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "signer": true,
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "order_commitment",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ],
+      "discriminator": [
+        35,
+        173,
+        49,
+        40,
+        36,
+        49,
+        158,
+        224
+      ],
+      "docs": [
+        "Submit an encrypted order for batch auction"
+      ],
+      "name": "submit_batch_order"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "signer": true,
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "encrypted_order",
+          "type": "bytes"
+        }
+      ],
+      "discriminator": [
+        137,
+        103,
+        194,
+        131,
+        80,
+        25,
+        150,
+        182
+      ],
+      "docs": [
+        "Submit a private trade order (encrypted via Arcium)"
+      ],
+      "name": "submit_private_trade"
+    },
+    {
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "yes_mint",
+          "writable": true
+        },
+        {
+          "name": "no_mint",
+          "writable": true
+        },
+        {
+          "docs": [
+            "Arcium MPC authority (in production, verify signature)"
+          ],
+          "name": "arcium_authority",
+          "signer": true
+        },
+        {
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "new_state_commitment",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "reserve_delta_yes",
+          "type": "i64"
+        },
+        {
+          "name": "reserve_delta_no",
+          "type": "i64"
+        }
+      ],
+      "discriminator": [
+        71,
+        109,
+        58,
+        20,
+        152,
+        33,
+        65,
+        191
+      ],
+      "docs": [
+        "Update CFMM state from private trade computation"
+      ],
+      "name": "update_cfmm_state"
+    }
+  ],
+  "metadata": {
+    "description": "Private Prediction Markets with Arcium MPC",
+    "name": "private_markets",
+    "spec": "0.1.0",
+    "version": "0.1.0"
+  },
+  "types": [
+    {
+      "name": "BatchCleared",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "uniform_price",
+            "type": "u64"
+          },
+          {
+            "name": "orders_cleared",
+            "type": "u32"
+          },
+          {
+            "name": "new_state_commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "next_batch_time",
+            "type": "i64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "BatchOrderSubmitted",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "order_commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "batch_clear_time",
+            "type": "i64"
+          },
+          {
+            "name": "order_number",
+            "type": "u32"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "docs": [
+        "Market state for a prediction market"
+      ],
+      "name": "Market",
+      "type": {
+        "fields": [
+          {
+            "docs": [
+              "Market authority (creator)"
+            ],
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "docs": [
+              "Market question"
+            ],
+            "name": "question",
+            "type": "string"
+          },
+          {
+            "docs": [
+              "End timestamp (unix)"
+            ],
+            "name": "end_time",
+            "type": "i64"
+          },
+          {
+            "docs": [
+              "Fee in basis points"
+            ],
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "docs": [
+              "Batch auction interval in seconds"
+            ],
+            "name": "batch_interval",
+            "type": "i64"
+          },
+          {
+            "docs": [
+              "Next batch clear timestamp"
+            ],
+            "name": "next_batch_clear",
+            "type": "i64"
+          },
+          {
+            "docs": [
+              "Resolver quorum requirement"
+            ],
+            "name": "resolver_quorum",
+            "type": "u8"
+          },
+          {
+            "docs": [
+              "Number of resolvers currently staked"
+            ],
+            "name": "resolver_count",
+            "type": "u8"
+          },
+          {
+            "docs": [
+              "Number of resolvers who have submitted an attestation"
+            ],
+            "name": "attestation_count",
+            "type": "u8"
+          },
+          {
+            "docs": [
+              "Collateral vault"
+            ],
+            "name": "collateral_vault",
+            "type": "pubkey"
+          },
+          {
+            "docs": [
+              "Fee vault"
+            ],
+            "name": "fee_vault",
+            "type": "pubkey"
+          },
+          {
+            "docs": [
+              "YES outcome token mint"
+            ],
+            "name": "yes_mint",
+            "type": "pubkey"
+          },
+          {
+            "docs": [
+              "NO outcome token mint"
+            ],
+            "name": "no_mint",
+            "type": "pubkey"
+          },
+          {
+            "docs": [
+              "CFMM state commitment (hash of encrypted reserves)"
+            ],
+            "name": "cfmm_state_commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "docs": [
+              "Current YES reserves (public aggregate)"
+            ],
+            "name": "yes_reserves",
+            "type": "u64"
+          },
+          {
+            "docs": [
+              "Current NO reserves (public aggregate)"
+            ],
+            "name": "no_reserves",
+            "type": "u64"
+          },
+          {
+            "docs": [
+              "Total volume traded"
+            ],
+            "name": "total_volume",
+            "type": "u64"
+          },
+          {
+            "docs": [
+              "Batch order commitment root"
+            ],
+            "name": "batch_order_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "docs": [
+              "Number of orders in current batch"
+            ],
+            "name": "batch_order_count",
+            "type": "u32"
+          },
+          {
+            "docs": [
+              "Market resolution state"
+            ],
+            "name": "resolution_state",
+            "type": {
+              "defined": {
+                "name": "ResolutionState"
+              }
+            }
+          },
+          {
+            "docs": [
+              "Final outcome (0 = NO, 1 = YES, 255 = unresolved)"
+            ],
+            "name": "final_outcome",
+            "type": "u8"
+          },
+          {
+            "docs": [
+              "Bump seed for PDA"
+            ],
+            "name": "bump",
+            "type": "u8"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "MarketResolved",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "final_outcome",
+            "type": "u8"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "PrivateTradeSubmitted",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "order_size",
+            "type": "u32"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "ResolutionReady",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "attestation_count",
+            "type": "u8"
+          },
+          {
+            "name": "quorum",
+            "type": "u8"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "docs": [
+        "Resolution state enum"
+      ],
+      "name": "ResolutionState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "AwaitingAttestation"
+          },
+          {
+            "name": "Computing"
+          },
+          {
+            "name": "Resolved"
+          }
+        ]
+      }
+    },
+    {
+      "docs": [
+        "Resolver account"
+      ],
+      "name": "Resolver",
+      "type": {
+        "fields": [
+          {
+            "docs": [
+              "Resolver pubkey"
+            ],
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "docs": [
+              "Market this resolver is staking for"
+            ],
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "docs": [
+              "Amount staked"
+            ],
+            "name": "stake_amount",
+            "type": "u64"
+          },
+          {
+            "docs": [
+              "Has submitted attestation"
+            ],
+            "name": "has_attested",
+            "type": "bool"
+          },
+          {
+            "docs": [
+              "Encrypted attestation commitment"
+            ],
+            "name": "attestation_commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "docs": [
+              "Timestamp of stake"
+            ],
+            "name": "staked_at",
+            "type": "i64"
+          },
+          {
+            "docs": [
+              "Bump seed"
+            ],
+            "name": "bump",
+            "type": "u8"
+          }
+        ],
+        "kind": "struct"
+      }
+    }
+  ]
+}

@@ -1,6 +1,19 @@
-import 'dotenv/config'
+import { config as loadEnv } from 'dotenv'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// Load environment variables, preferring .env.local for app usage
+// Falls back to .env if .env.local is not present
+(() => {
+  const cwd = process.cwd()
+  const localPath = resolve(cwd, '.env.local')
+  const defaultPath = resolve(cwd, '.env')
+  const path = existsSync(localPath) ? localPath : defaultPath
+  loadEnv({ path })
+})()
 
 import { AnchorProvider, Program, type Idl } from '@coral-xyz/anchor'
+import { promises as fs } from 'node:fs'
 import { neon } from '@neondatabase/serverless'
 import { Keypair, PublicKey, Connection, type Transaction } from '@solana/web3.js'
 
@@ -73,16 +86,34 @@ async function loadProgram(): Promise<Program> {
   }
 
   if (!idl) {
-    try {
-      const localIdl = await import('../idl/private_markets.json')
-      idl = (localIdl as { default: Idl }).default
-    } catch (localError) {
-      console.error('Could not resolve IDL for private_markets program.', localError)
-      throw new Error('Could not resolve IDL for private_markets program.')
+    // Try app/scripts/idl first
+    const tryPaths = [
+      resolve(process.cwd(), 'scripts/idl/private_markets.json'),
+      // Fallback to repo target IDL (built by `anchor build`)
+      resolve(process.cwd(), '../target/idl/private_markets.json'),
+    ]
+
+    let loaded: Idl | null = null
+    for (const p of tryPaths) {
+      try {
+        const raw = await fs.readFile(p, 'utf8')
+        loaded = JSON.parse(raw) as Idl
+        idl = loaded
+        break
+      } catch (_) {
+        // continue
+      }
+    }
+
+    if (!idl) {
+      throw new Error(
+        'Could not resolve IDL for private_markets program. Ensure the program is deployed (fetchIdl works) or run `anchor build` to generate target/idl/private_markets.json.'
+      )
     }
   }
 
-  return new Program(idl, PROGRAM_ID, provider)
+  // Anchor 0.30.x Program constructor takes (idl, provider). Program ID is read from idl.address
+  return new Program(idl, provider)
 }
 
 async function ensureTable(sql: ReturnType<typeof neon>) {

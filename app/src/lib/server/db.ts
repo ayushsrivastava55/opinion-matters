@@ -1,6 +1,6 @@
-import { neon, type NeonQueryFunction } from '@neondatabase/serverless'
+import { neon } from '@neondatabase/serverless'
 
-type NeonClient = NeonQueryFunction<Record<string, unknown>[]>
+type NeonClient = any
 
 declare global {
   var __neonClient: NeonClient | undefined

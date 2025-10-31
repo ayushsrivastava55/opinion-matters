@@ -1,5 +1,6 @@
 import { getDb } from './db'
 import type { MarketRecord, MarketResolutionState } from '../market-types'
+// DB mapping helpers only. On-chain validation is done elsewhere.
 
 type DbMarketRow = {
   id: string
@@ -81,6 +82,16 @@ export async function fetchMarketsFromDb(): Promise<MarketRecord[]> {
     FROM markets
     ORDER BY end_time ASC
   `
+
+  // DEMO MODE: Skip on-chain validation to show mock markets
+  // Uncomment below to filter only on-chain markets:
+  // const program = await loadProgram()
+  // const existingOnChain = new Set(
+  //   (await program.account.market.all()).map(m => m.publicKey.toBase58())
+  // )
+  // return rows
+  //   .filter(row => existingOnChain.has(row.market_public_key))
+  //   .map(mapRowToMarket)
 
   return rows.map(mapRowToMarket)
 }

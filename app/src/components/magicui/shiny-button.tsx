@@ -9,8 +9,9 @@ interface ShinyButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function ShinyButton({ className, children, ...props }: ShinyButtonProps) {
+  const MButton = motion.button as any
   return (
-    <motion.button
+    <MButton
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={cn(
@@ -31,6 +32,6 @@ export function ShinyButton({ className, children, ...props }: ShinyButtonProps)
         />
       </span>
       <span className="relative flex items-center gap-2">{children}</span>
-    </motion.button>
+    </MButton>
   )
 }
