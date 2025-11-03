@@ -40,7 +40,7 @@ type MarketAccountResponse = {
 }
 
 const PROGRAM_ID = new PublicKey(
-  process.env.PROGRAM_ID ?? 'G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro',
+  process.env.PROGRAM_ID ?? 'AjSL49GvLcfvarTXBcTX1fk9WqxH6LFVLpWnh8bgGtnK',
 )
 
 const RPC_URL = process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com'

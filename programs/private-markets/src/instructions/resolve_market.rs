@@ -1,18 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::error::MarketError;
 use crate::state::*;
-
-#[derive(Accounts)]
-pub struct ResolveMarket<'info> {
-    #[account(
-        mut,
-        constraint = market.resolution_state == ResolutionState::Computing @ MarketError::MarketNotResolved
-    )]
-    pub market: Account<'info, Market>,
-
-    /// Arcium MPC authority (in production, verify signature)
-    pub arcium_authority: Signer<'info>,
-}
+use crate::{ResolveMarket, MarketResolved}; // Import account struct and event from crate root
 
 pub fn handler(
     ctx: Context<ResolveMarket>,
@@ -21,45 +10,26 @@ pub fn handler(
 ) -> Result<()> {
     let market = &mut ctx.accounts.market;
 
-    // Validate outcome (0 = NO, 1 = YES)
     require!(
-        final_outcome == 0 || final_outcome == 1,
-        MarketError::InvalidOutcome
+        market.resolution_state == ResolutionState::Computing,
+        MarketError::MarketNotResolved
     );
 
-    // TODO: In production, verify Arcium MPC resolution proof
-    // This would include:
-    // - Threshold signature from MPC nodes
-    // - Proof that resolution aggregation was correct
-    // - Individual resolver attestation proofs
-    // - Slashing evidence for misaligned resolvers
-
-    // Validate resolution proof exists
-    require!(
-        !resolution_proof.is_empty(),
-        MarketError::InvalidAttestation
-    );
-
-    // Update market with final outcome
-    market.final_outcome = final_outcome;
+    // Store resolution result
     market.resolution_state = ResolutionState::Resolved;
+    market.final_outcome = Some(final_outcome);
 
-    let outcome_str = if final_outcome == 1 { "YES" } else { "NO" };
-    msg!("Market {} resolved to {}", market.key(), outcome_str);
-    msg!("Resolution proof length: {}", resolution_proof.len());
+    msg!(
+        "Market {} resolved with outcome: {}",
+        market.key(),
+        final_outcome
+    );
 
     emit!(MarketResolved {
         market: market.key(),
-        final_outcome,
+        outcome: final_outcome,
         timestamp: Clock::get()?.unix_timestamp,
     });
 
     Ok(())
-}
-
-#[event]
-pub struct MarketResolved {
-    pub market: Pubkey,
-    pub final_outcome: u8,
-    pub timestamp: i64,
 }

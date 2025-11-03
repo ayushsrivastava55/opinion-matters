@@ -1,26 +1,24 @@
 use anchor_lang::prelude::*;
+use arcium_anchor::prelude::*;
+use arcium_client::idl::arcium::types::CallbackAccount;
 use crate::constants::*;
 use crate::error::MarketError;
 use crate::state::*;
+use crate::{SubmitBatchOrder, BatchClearCallback}; // Import from crate root
 
-#[derive(Accounts)]
-pub struct SubmitBatchOrder<'info> {
-    #[account(
-        mut,
-        constraint = market.resolution_state == ResolutionState::Active @ MarketError::MarketAlreadyResolved
-    )]
-    pub market: Account<'info, Market>,
-
-    #[account(mut)]
-    pub user: Signer<'info>,
-}
+// Handler function - account struct is defined in lib.rs for #[arcium_program] macro
 
 pub fn handler(
     ctx: Context<SubmitBatchOrder>,
-    order_commitment: [u8; 32],
+    computation_offset: u64,
+    batch_orders: Vec<BatchOrderData>,
 ) -> Result<()> {
-    let market = &mut ctx.accounts.market;
     let clock = Clock::get()?;
+    
+    // Get key before mutable borrow
+    let market_key = ctx.accounts.market.key();
+    
+    let market = &mut ctx.accounts.market;
 
     // Check market hasn't ended
     require!(
@@ -34,46 +32,42 @@ pub fn handler(
         MarketError::BatchWindowOpen
     );
 
-    // Validate order commitment
-    require!(
-        order_commitment != [0u8; 32],
-        MarketError::InvalidStateCommitment
-    );
-
-    // In production, this would:
-    // 1. Store order commitment in a merkle tree
-    // 2. Update batch_order_root with new merkle root
-    // For now, we just update the count
-
+    // Increment batch order count
     market.batch_order_count = market
         .batch_order_count
-        .checked_add(1)
+        .checked_add(batch_orders.len() as u32)
         .ok_or(MarketError::Overflow)?;
 
-    msg!(
-        "Batch order submitted for market {} by user {}",
-        market.key(),
-        ctx.accounts.user.key()
-    );
-    msg!("Order commitment: {:?}", order_commitment);
-    msg!("Total batch orders: {}", market.batch_order_count);
+    // Drop mutable borrow before calling queue_computation
+    drop(market);
 
-    emit!(BatchOrderSubmitted {
-        market: market.key(),
-        user: ctx.accounts.user.key(),
-        order_commitment,
-        batch_clear_time: market.next_batch_clear,
-        order_number: market.batch_order_count,
-    });
+    // Build arguments for batch clearing computation
+    let args = vec![
+        // Read current CFMM state
+        Argument::Account(market_key, MARKET_YES_RESERVES_OFFSET, 8),
+        Argument::Account(market_key, MARKET_NO_RESERVES_OFFSET, 8),
+    ];
+
+    ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;
+
+    // Queue batch clear computation
+    queue_computation(
+        ctx.accounts,
+        computation_offset,
+        args,
+        None,
+        vec![BatchClearCallback::callback_ix(&[
+            CallbackAccount {
+                pubkey: market_key,
+                is_writable: true,
+            }
+        ])],
+    )?;
+
+    msg!(
+        "Batch orders queued for market {}",
+        market_key
+    );
 
     Ok(())
-}
-
-#[event]
-pub struct BatchOrderSubmitted {
-    pub market: Pubkey,
-    pub user: Pubkey,
-    pub order_commitment: [u8; 32],
-    pub batch_clear_time: i64,
-    pub order_number: u32,
 }

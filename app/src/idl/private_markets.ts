@@ -1,14 +1,20 @@
-{
-  "address": "AjSL49GvLcfvarTXBcTX1fk9WqxH6LFVLpWnh8bgGtnK",
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/private_markets.json`.
+ */
+export type PrivateMarkets = {
+  "address": "G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro",
   "metadata": {
-    "name": "private_markets",
+    "name": "privateMarkets",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Private Prediction Markets with Arcium MPC"
   },
   "instructions": [
     {
-      "name": "apply_batch_clear",
+      "name": "applyBatchClear",
       "docs": [
         "Apply batch clear results from Arcium MPC"
       ],
@@ -28,7 +34,7 @@
           "writable": true
         },
         {
-          "name": "arcium_authority",
+          "name": "arciumAuthority",
           "docs": [
             "Arcium MPC authority (in production, verify signature)"
           ],
@@ -37,7 +43,7 @@
       ],
       "args": [
         {
-          "name": "new_state_commitment",
+          "name": "newStateCommitment",
           "type": {
             "array": [
               "u8",
@@ -46,13 +52,13 @@
           }
         },
         {
-          "name": "uniform_price",
+          "name": "uniformPrice",
           "type": "u64"
         }
       ]
     },
     {
-      "name": "batch_clear_callback",
+      "name": "batchClearCallback",
       "discriminator": [
         245,
         139,
@@ -65,14 +71,14 @@
       ],
       "accounts": [
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
-          "name": "comp_def_account"
+          "name": "compDefAccount"
         },
         {
-          "name": "instructions_sysvar",
+          "name": "instructionsSysvar",
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
@@ -85,13 +91,13 @@
           "name": "output",
           "type": {
             "defined": {
-              "name": "ComputationOutputs",
+              "name": "computationOutputs",
               "generics": [
                 {
                   "kind": "type",
                   "type": {
                     "defined": {
-                      "name": "BatchClearOutput"
+                      "name": "batchClearOutput"
                     }
                   }
                 }
@@ -102,7 +108,7 @@
       ]
     },
     {
-      "name": "create_market",
+      "name": "createMarket",
       "discriminator": [
         103,
         226,
@@ -138,23 +144,23 @@
           }
         },
         {
-          "name": "collateral_vault",
+          "name": "collateralVault",
           "writable": true
         },
         {
-          "name": "fee_vault",
+          "name": "feeVault",
           "writable": true
         },
         {
-          "name": "yes_mint",
+          "name": "yesMint",
           "writable": true
         },
         {
-          "name": "no_mint",
+          "name": "noMint",
           "writable": true
         },
         {
-          "name": "collateral_mint"
+          "name": "collateralMint"
         },
         {
           "name": "authority",
@@ -162,11 +168,11 @@
           "signer": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
@@ -180,25 +186,25 @@
           "type": "string"
         },
         {
-          "name": "end_time",
+          "name": "endTime",
           "type": "i64"
         },
         {
-          "name": "fee_bps",
+          "name": "feeBps",
           "type": "u16"
         },
         {
-          "name": "batch_interval",
+          "name": "batchInterval",
           "type": "i64"
         },
         {
-          "name": "resolver_quorum",
+          "name": "resolverQuorum",
           "type": "u8"
         }
       ]
     },
     {
-      "name": "deposit_collateral",
+      "name": "depositCollateral",
       "discriminator": [
         156,
         131,
@@ -214,11 +220,11 @@
           "name": "market"
         },
         {
-          "name": "collateral_vault",
+          "name": "collateralVault",
           "writable": true
         },
         {
-          "name": "user_collateral",
+          "name": "userCollateral",
           "writable": true
         },
         {
@@ -227,7 +233,7 @@
           "signer": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
@@ -239,7 +245,7 @@
       ]
     },
     {
-      "name": "init_batch_clear_comp_def",
+      "name": "initBatchClearCompDef",
       "discriminator": [
         171,
         87,
@@ -257,26 +263,26 @@
           "signer": true
         },
         {
-          "name": "mxe_account",
+          "name": "mxeAccount",
           "writable": true
         },
         {
-          "name": "comp_def_account",
+          "name": "compDefAccount",
           "writable": true
         },
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "init_private_trade_comp_def",
+      "name": "initPrivateTradeCompDef",
       "discriminator": [
         104,
         157,
@@ -294,26 +300,26 @@
           "signer": true
         },
         {
-          "name": "mxe_account",
+          "name": "mxeAccount",
           "writable": true
         },
         {
-          "name": "comp_def_account",
+          "name": "compDefAccount",
           "writable": true
         },
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "init_resolve_market_comp_def",
+      "name": "initResolveMarketCompDef",
       "discriminator": [
         78,
         239,
@@ -331,26 +337,26 @@
           "signer": true
         },
         {
-          "name": "mxe_account",
+          "name": "mxeAccount",
           "writable": true
         },
         {
-          "name": "comp_def_account",
+          "name": "compDefAccount",
           "writable": true
         },
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "mint_outcome_tokens",
+      "name": "mintOutcomeTokens",
       "discriminator": [
         27,
         243,
@@ -367,11 +373,11 @@
           "writable": true
         },
         {
-          "name": "outcome_mint",
+          "name": "outcomeMint",
           "writable": true
         },
         {
-          "name": "recipient_token_account",
+          "name": "recipientTokenAccount",
           "writable": true
         },
         {
@@ -382,7 +388,7 @@
           ]
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
@@ -394,7 +400,7 @@
       ]
     },
     {
-      "name": "private_trade_callback",
+      "name": "privateTradeCallback",
       "discriminator": [
         24,
         124,
@@ -407,14 +413,14 @@
       ],
       "accounts": [
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
-          "name": "comp_def_account"
+          "name": "compDefAccount"
         },
         {
-          "name": "instructions_sysvar",
+          "name": "instructionsSysvar",
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
@@ -427,13 +433,13 @@
           "name": "output",
           "type": {
             "defined": {
-              "name": "ComputationOutputs",
+              "name": "computationOutputs",
               "generics": [
                 {
                   "kind": "type",
                   "type": {
                     "defined": {
-                      "name": "PrivateTradeOutput"
+                      "name": "privateTradeOutput"
                     }
                   }
                 }
@@ -444,7 +450,7 @@
       ]
     },
     {
-      "name": "redeem_tokens",
+      "name": "redeemTokens",
       "discriminator": [
         246,
         98,
@@ -460,19 +466,19 @@
           "name": "market"
         },
         {
-          "name": "outcome_mint",
+          "name": "outcomeMint",
           "writable": true
         },
         {
-          "name": "user_outcome_tokens",
+          "name": "userOutcomeTokens",
           "writable": true
         },
         {
-          "name": "collateral_vault",
+          "name": "collateralVault",
           "writable": true
         },
         {
-          "name": "user_collateral_account",
+          "name": "userCollateralAccount",
           "writable": true
         },
         {
@@ -481,7 +487,7 @@
           "signer": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
@@ -493,7 +499,7 @@
       ]
     },
     {
-      "name": "resolve_market",
+      "name": "resolveMarket",
       "discriminator": [
         155,
         23,
@@ -510,7 +516,7 @@
           "writable": true
         },
         {
-          "name": "arcium_authority",
+          "name": "arciumAuthority",
           "docs": [
             "Arcium MPC authority (in production, verify signature)"
           ],
@@ -519,17 +525,17 @@
       ],
       "args": [
         {
-          "name": "final_outcome",
+          "name": "finalOutcome",
           "type": "u8"
         },
         {
-          "name": "resolution_proof",
+          "name": "resolutionProof",
           "type": "bytes"
         }
       ]
     },
     {
-      "name": "resolve_market_callback",
+      "name": "resolveMarketCallback",
       "discriminator": [
         222,
         135,
@@ -542,14 +548,14 @@
       ],
       "accounts": [
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
-          "name": "comp_def_account"
+          "name": "compDefAccount"
         },
         {
-          "name": "instructions_sysvar",
+          "name": "instructionsSysvar",
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
@@ -562,13 +568,13 @@
           "name": "output",
           "type": {
             "defined": {
-              "name": "ComputationOutputs",
+              "name": "computationOutputs",
               "generics": [
                 {
                   "kind": "type",
                   "type": {
                     "defined": {
-                      "name": "ResolveMarketOutput"
+                      "name": "resolveMarketOutput"
                     }
                   }
                 }
@@ -579,7 +585,7 @@
       ]
     },
     {
-      "name": "stake_resolver",
+      "name": "stakeResolver",
       "discriminator": [
         81,
         248,
@@ -625,11 +631,11 @@
           }
         },
         {
-          "name": "collateral_vault",
+          "name": "collateralVault",
           "writable": true
         },
         {
-          "name": "resolver_token_account",
+          "name": "resolverTokenAccount",
           "writable": true
         },
         {
@@ -638,11 +644,11 @@
           "signer": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
@@ -654,7 +660,7 @@
       ]
     },
     {
-      "name": "submit_attestation",
+      "name": "submitAttestation",
       "docs": [
         "Submit encrypted attestation for market resolution"
       ],
@@ -675,7 +681,7 @@
           "signer": true
         },
         {
-          "name": "sign_pda_account",
+          "name": "signPdaAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -701,42 +707,42 @@
           }
         },
         {
-          "name": "mxe_account"
+          "name": "mxeAccount"
         },
         {
-          "name": "mempool_account",
+          "name": "mempoolAccount",
           "writable": true
         },
         {
-          "name": "executing_pool",
+          "name": "executingPool",
           "writable": true
         },
         {
-          "name": "computation_account",
+          "name": "computationAccount",
           "writable": true
         },
         {
-          "name": "comp_def_account"
+          "name": "compDefAccount"
         },
         {
-          "name": "cluster_account",
+          "name": "clusterAccount",
           "writable": true
         },
         {
-          "name": "pool_account",
+          "name": "poolAccount",
           "writable": true,
           "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
         },
         {
-          "name": "clock_account",
+          "name": "clockAccount",
           "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
@@ -779,7 +785,7 @@
       ],
       "args": [
         {
-          "name": "computation_offset",
+          "name": "computationOffset",
           "type": "u64"
         },
         {
@@ -794,7 +800,7 @@
       ]
     },
     {
-      "name": "submit_batch_order",
+      "name": "submitBatchOrder",
       "docs": [
         "Submit a batch order"
       ],
@@ -815,7 +821,7 @@
           "signer": true
         },
         {
-          "name": "sign_pda_account",
+          "name": "signPdaAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -841,42 +847,42 @@
           }
         },
         {
-          "name": "mxe_account"
+          "name": "mxeAccount"
         },
         {
-          "name": "mempool_account",
+          "name": "mempoolAccount",
           "writable": true
         },
         {
-          "name": "executing_pool",
+          "name": "executingPool",
           "writable": true
         },
         {
-          "name": "computation_account",
+          "name": "computationAccount",
           "writable": true
         },
         {
-          "name": "comp_def_account"
+          "name": "compDefAccount"
         },
         {
-          "name": "cluster_account",
+          "name": "clusterAccount",
           "writable": true
         },
         {
-          "name": "pool_account",
+          "name": "poolAccount",
           "writable": true,
           "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
         },
         {
-          "name": "clock_account",
+          "name": "clockAccount",
           "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
@@ -886,15 +892,15 @@
       ],
       "args": [
         {
-          "name": "computation_offset",
+          "name": "computationOffset",
           "type": "u64"
         },
         {
-          "name": "batch_orders",
+          "name": "batchOrders",
           "type": {
             "vec": {
               "defined": {
-                "name": "BatchOrderData"
+                "name": "batchOrderData"
               }
             }
           }
@@ -902,7 +908,7 @@
       ]
     },
     {
-      "name": "submit_private_trade",
+      "name": "submitPrivateTrade",
       "docs": [
         "Submit a private trade"
       ],
@@ -923,7 +929,7 @@
           "signer": true
         },
         {
-          "name": "sign_pda_account",
+          "name": "signPdaAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -949,42 +955,42 @@
           }
         },
         {
-          "name": "mxe_account"
+          "name": "mxeAccount"
         },
         {
-          "name": "mempool_account",
+          "name": "mempoolAccount",
           "writable": true
         },
         {
-          "name": "executing_pool",
+          "name": "executingPool",
           "writable": true
         },
         {
-          "name": "computation_account",
+          "name": "computationAccount",
           "writable": true
         },
         {
-          "name": "comp_def_account"
+          "name": "compDefAccount"
         },
         {
-          "name": "cluster_account",
+          "name": "clusterAccount",
           "writable": true
         },
         {
-          "name": "pool_account",
+          "name": "poolAccount",
           "writable": true,
           "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
         },
         {
-          "name": "clock_account",
+          "name": "clockAccount",
           "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "arcium_program",
+          "name": "arciumProgram",
           "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
         },
         {
@@ -994,11 +1000,11 @@
       ],
       "args": [
         {
-          "name": "computation_offset",
+          "name": "computationOffset",
           "type": "u64"
         },
         {
-          "name": "encrypted_order",
+          "name": "encryptedOrder",
           "type": {
             "array": [
               "u8",
@@ -1007,7 +1013,7 @@
           }
         },
         {
-          "name": "client_pubkey",
+          "name": "clientPubkey",
           "type": {
             "array": [
               "u8",
@@ -1018,7 +1024,7 @@
       ]
     },
     {
-      "name": "update_cfmm_state",
+      "name": "updateCfmmState",
       "docs": [
         "Update CFMM state from private trade computation"
       ],
@@ -1038,28 +1044,28 @@
           "writable": true
         },
         {
-          "name": "yes_mint",
+          "name": "yesMint",
           "writable": true
         },
         {
-          "name": "no_mint",
+          "name": "noMint",
           "writable": true
         },
         {
-          "name": "arcium_authority",
+          "name": "arciumAuthority",
           "docs": [
             "Arcium MPC authority (in production, verify signature)"
           ],
           "signer": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": [
         {
-          "name": "new_state_commitment",
+          "name": "newStateCommitment",
           "type": {
             "array": [
               "u8",
@@ -1068,11 +1074,11 @@
           }
         },
         {
-          "name": "reserve_delta_yes",
+          "name": "reserveDeltaYes",
           "type": "i64"
         },
         {
-          "name": "reserve_delta_no",
+          "name": "reserveDeltaNo",
           "type": "i64"
         }
       ]
@@ -1080,7 +1086,7 @@
   ],
   "accounts": [
     {
-      "name": "ClockAccount",
+      "name": "clockAccount",
       "discriminator": [
         152,
         171,
@@ -1093,7 +1099,7 @@
       ]
     },
     {
-      "name": "Cluster",
+      "name": "cluster",
       "discriminator": [
         236,
         225,
@@ -1106,7 +1112,7 @@
       ]
     },
     {
-      "name": "ComputationDefinitionAccount",
+      "name": "computationDefinitionAccount",
       "discriminator": [
         245,
         176,
@@ -1119,7 +1125,7 @@
       ]
     },
     {
-      "name": "FeePool",
+      "name": "feePool",
       "discriminator": [
         172,
         38,
@@ -1132,7 +1138,7 @@
       ]
     },
     {
-      "name": "MXEAccount",
+      "name": "mxeAccount",
       "discriminator": [
         103,
         26,
@@ -1145,7 +1151,7 @@
       ]
     },
     {
-      "name": "Market",
+      "name": "market",
       "discriminator": [
         219,
         190,
@@ -1158,7 +1164,7 @@
       ]
     },
     {
-      "name": "Resolver",
+      "name": "resolver",
       "discriminator": [
         108,
         125,
@@ -1171,7 +1177,7 @@
       ]
     },
     {
-      "name": "SignerAccount",
+      "name": "signerAccount",
       "discriminator": [
         127,
         212,
@@ -1186,7 +1192,7 @@
   ],
   "events": [
     {
-      "name": "AttestationSubmitted",
+      "name": "attestationSubmitted",
       "discriminator": [
         177,
         213,
@@ -1199,7 +1205,7 @@
       ]
     },
     {
-      "name": "BatchCleared",
+      "name": "batchCleared",
       "discriminator": [
         8,
         207,
@@ -1212,7 +1218,7 @@
       ]
     },
     {
-      "name": "MarketResolved",
+      "name": "marketResolved",
       "discriminator": [
         89,
         67,
@@ -1225,7 +1231,7 @@
       ]
     },
     {
-      "name": "PrivateTradeExecuted",
+      "name": "privateTradeExecuted",
       "discriminator": [
         58,
         56,
@@ -1238,7 +1244,7 @@
       ]
     },
     {
-      "name": "PrivateTradeQueued",
+      "name": "privateTradeQueued",
       "discriminator": [
         170,
         20,
@@ -1254,149 +1260,149 @@
   "errors": [
     {
       "code": 6000,
-      "name": "QuestionTooLong",
+      "name": "questionTooLong",
       "msg": "Question exceeds maximum length"
     },
     {
       "code": 6001,
-      "name": "InvalidEndTime",
+      "name": "invalidEndTime",
       "msg": "Invalid end time (must be in the future)"
     },
     {
       "code": 6002,
-      "name": "InvalidFeeBps",
+      "name": "invalidFeeBps",
       "msg": "Fee basis points out of range"
     },
     {
       "code": 6003,
-      "name": "InvalidBatchInterval",
+      "name": "invalidBatchInterval",
       "msg": "Batch interval out of range"
     },
     {
       "code": 6004,
-      "name": "MarketEnded",
+      "name": "marketEnded",
       "msg": "Market has already ended"
     },
     {
       "code": 6005,
-      "name": "MarketNotEnded",
+      "name": "marketNotEnded",
       "msg": "Market has not ended yet"
     },
     {
       "code": 6006,
-      "name": "MarketAlreadyResolved",
+      "name": "marketAlreadyResolved",
       "msg": "Market is already resolved"
     },
     {
       "code": 6007,
-      "name": "MarketNotResolved",
+      "name": "marketNotResolved",
       "msg": "Market is not resolved yet"
     },
     {
       "code": 6008,
-      "name": "InsufficientCollateral",
+      "name": "insufficientCollateral",
       "msg": "Insufficient collateral"
     },
     {
       "code": 6009,
-      "name": "InvalidQuorum",
+      "name": "invalidQuorum",
       "msg": "Invalid resolver quorum"
     },
     {
       "code": 6010,
-      "name": "InsufficientResolvers",
+      "name": "insufficientResolvers",
       "msg": "Not enough resolvers staked"
     },
     {
       "code": 6011,
-      "name": "InsufficientStake",
+      "name": "insufficientStake",
       "msg": "Insufficient stake amount"
     },
     {
       "code": 6012,
-      "name": "ResolverAlreadyStaked",
+      "name": "resolverAlreadyStaked",
       "msg": "Resolver already staked"
     },
     {
       "code": 6013,
-      "name": "InvalidAttestation",
+      "name": "invalidAttestation",
       "msg": "Invalid attestation"
     },
     {
       "code": 6014,
-      "name": "BatchWindowOpen",
+      "name": "batchWindowOpen",
       "msg": "Batch clearing window has not ended"
     },
     {
       "code": 6015,
-      "name": "InvalidStateCommitment",
+      "name": "invalidStateCommitment",
       "msg": "Invalid state commitment"
     },
     {
       "code": 6016,
-      "name": "Overflow",
+      "name": "overflow",
       "msg": "Arithmetic overflow"
     },
     {
       "code": 6017,
-      "name": "InvalidOutcome",
+      "name": "invalidOutcome",
       "msg": "Invalid outcome value"
     },
     {
       "code": 6018,
-      "name": "Unauthorized",
-      "msg": "Unauthorized"
+      "name": "unauthorized",
+      "msg": "unauthorized"
     },
     {
       "code": 6019,
-      "name": "InvalidCfmmState",
+      "name": "invalidCfmmState",
       "msg": "Invalid CFMM state"
     },
     {
       "code": 6020,
-      "name": "SlippageExceeded",
+      "name": "slippageExceeded",
       "msg": "Slippage tolerance exceeded"
     },
     {
       "code": 6021,
-      "name": "ComputationFailed",
+      "name": "computationFailed",
       "msg": "Arcium MPC computation failed"
     },
     {
       "code": 6022,
-      "name": "ComputationAborted",
+      "name": "computationAborted",
       "msg": "Arcium MPC computation aborted"
     },
     {
       "code": 6023,
-      "name": "InvalidResolutionState",
+      "name": "invalidResolutionState",
       "msg": "Invalid resolution state"
     },
     {
       "code": 6024,
-      "name": "ClusterNotSet",
+      "name": "clusterNotSet",
       "msg": "Cluster not set"
     }
   ],
   "types": [
     {
-      "name": "Activation",
+      "name": "activation",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "activation_epoch",
+            "name": "activationEpoch",
             "type": {
               "defined": {
-                "name": "Epoch"
+                "name": "epoch"
               }
             }
           },
           {
-            "name": "deactivation_epoch",
+            "name": "deactivationEpoch",
             "type": {
               "defined": {
-                "name": "Epoch"
+                "name": "epoch"
               }
             }
           }
@@ -1404,7 +1410,7 @@
       }
     },
     {
-      "name": "AttestationSubmitted",
+      "name": "attestationSubmitted",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1432,7 +1438,7 @@
       }
     },
     {
-      "name": "BatchClearOutput",
+      "name": "batchClearOutput",
       "docs": [
         "The output of the callback instruction. Provided as a struct with ordered fields",
         "as anchor does not support tuples and tuple structs yet."
@@ -1441,10 +1447,10 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "field_0",
+            "name": "field0",
             "type": {
               "defined": {
-                "name": "SharedEncryptedStruct",
+                "name": "sharedEncryptedStruct",
                 "generics": [
                   {
                     "kind": "const",
@@ -1458,7 +1464,7 @@
       }
     },
     {
-      "name": "BatchCleared",
+      "name": "batchCleared",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1467,7 +1473,7 @@
             "type": "pubkey"
           },
           {
-            "name": "uniform_price",
+            "name": "uniformPrice",
             "type": "u64"
           },
           {
@@ -1478,7 +1484,7 @@
       }
     },
     {
-      "name": "BatchOrderData",
+      "name": "batchOrderData",
       "docs": [
         "Batch order data for submission"
       ],
@@ -1505,7 +1511,7 @@
             "type": "u64"
           },
           {
-            "name": "is_buy",
+            "name": "isBuy",
             "docs": [
               "True for buy, false for sell"
             ],
@@ -1515,36 +1521,36 @@
       }
     },
     {
-      "name": "CircuitSource",
+      "name": "circuitSource",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Local",
+            "name": "local",
             "fields": [
               {
                 "defined": {
-                  "name": "LocalCircuitSource"
+                  "name": "localCircuitSource"
                 }
               }
             ]
           },
           {
-            "name": "OnChain",
+            "name": "onChain",
             "fields": [
               {
                 "defined": {
-                  "name": "OnChainCircuitSource"
+                  "name": "onChainCircuitSource"
                 }
               }
             ]
           },
           {
-            "name": "OffChain",
+            "name": "offChain",
             "fields": [
               {
                 "defined": {
-                  "name": "OffChainCircuitSource"
+                  "name": "offChainCircuitSource"
                 }
               }
             ]
@@ -1553,7 +1559,7 @@
       }
     },
     {
-      "name": "ClockAccount",
+      "name": "clockAccount",
       "docs": [
         "An account storing the current network epoch"
       ],
@@ -1561,26 +1567,26 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "start_epoch",
+            "name": "startEpoch",
             "type": {
               "defined": {
-                "name": "Epoch"
+                "name": "epoch"
               }
             }
           },
           {
-            "name": "current_epoch",
+            "name": "currentEpoch",
             "type": {
               "defined": {
-                "name": "Epoch"
+                "name": "epoch"
               }
             }
           },
           {
-            "name": "start_epoch_timestamp",
+            "name": "startEpochTimestamp",
             "type": {
               "defined": {
-                "name": "Timestamp"
+                "name": "timestamp"
               }
             }
           },
@@ -1592,7 +1598,7 @@
       }
     },
     {
-      "name": "Cluster",
+      "name": "cluster",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1603,27 +1609,27 @@
             }
           },
           {
-            "name": "max_size",
+            "name": "maxSize",
             "type": "u32"
           },
           {
             "name": "activation",
             "type": {
               "defined": {
-                "name": "Activation"
+                "name": "activation"
               }
             }
           },
           {
-            "name": "max_capacity",
+            "name": "maxCapacity",
             "type": "u64"
           },
           {
-            "name": "cu_price",
+            "name": "cuPrice",
             "type": "u64"
           },
           {
-            "name": "cu_price_proposals",
+            "name": "cuPriceProposals",
             "type": {
               "array": [
                 "u64",
@@ -1632,10 +1638,10 @@
             }
           },
           {
-            "name": "last_updated_epoch",
+            "name": "lastUpdatedEpoch",
             "type": {
               "defined": {
-                "name": "Epoch"
+                "name": "epoch"
               }
             }
           },
@@ -1650,17 +1656,17 @@
             "type": {
               "vec": {
                 "defined": {
-                  "name": "NodeRef"
+                  "name": "nodeRef"
                 }
               }
             }
           },
           {
-            "name": "pending_nodes",
+            "name": "pendingNodes",
             "type": {
               "vec": {
                 "defined": {
-                  "name": "NodeRef"
+                  "name": "nodeRef"
                 }
               }
             }
@@ -1673,7 +1679,7 @@
       }
     },
     {
-      "name": "ComputationDefinitionAccount",
+      "name": "computationDefinitionAccount",
       "docs": [
         "An account representing a [ComputationDefinition] in a MXE."
       ],
@@ -1681,32 +1687,32 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "finalization_authority",
+            "name": "finalizationAuthority",
             "type": {
               "option": "pubkey"
             }
           },
           {
-            "name": "finalize_during_callback",
+            "name": "finalizeDuringCallback",
             "type": "bool"
           },
           {
-            "name": "cu_amount",
+            "name": "cuAmount",
             "type": "u64"
           },
           {
             "name": "definition",
             "type": {
               "defined": {
-                "name": "ComputationDefinitionMeta"
+                "name": "computationDefinitionMeta"
               }
             }
           },
           {
-            "name": "circuit_source",
+            "name": "circuitSource",
             "type": {
               "defined": {
-                "name": "CircuitSource"
+                "name": "circuitSource"
               }
             }
           },
@@ -1718,7 +1724,7 @@
       }
     },
     {
-      "name": "ComputationDefinitionMeta",
+      "name": "computationDefinitionMeta",
       "docs": [
         "A computation definition for execution in a MXE."
       ],
@@ -1726,14 +1732,14 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "circuit_len",
+            "name": "circuitLen",
             "type": "u32"
           },
           {
             "name": "signature",
             "type": {
               "defined": {
-                "name": "ComputationSignature"
+                "name": "computationSignature"
               }
             }
           }
@@ -1741,32 +1747,32 @@
       }
     },
     {
-      "name": "ComputationOutputs",
+      "name": "computationOutputs",
       "generics": [
         {
           "kind": "type",
-          "name": "O"
+          "name": "o"
         }
       ],
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Success",
+            "name": "success",
             "fields": [
               {
-                "generic": "O"
+                "generic": "o"
               }
             ]
           },
           {
-            "name": "Failure"
+            "name": "failure"
           }
         ]
       }
     },
     {
-      "name": "ComputationSignature",
+      "name": "computationSignature",
       "docs": [
         "The signature of a computation defined in a [ComputationDefinition]."
       ],
@@ -1778,7 +1784,7 @@
             "type": {
               "vec": {
                 "defined": {
-                  "name": "Parameter"
+                  "name": "parameter"
                 }
               }
             }
@@ -1788,7 +1794,7 @@
             "type": {
               "vec": {
                 "defined": {
-                  "name": "Output"
+                  "name": "output"
                 }
               }
             }
@@ -1797,7 +1803,7 @@
       }
     },
     {
-      "name": "Epoch",
+      "name": "epoch",
       "docs": [
         "The network epoch"
       ],
@@ -1809,7 +1815,7 @@
       }
     },
     {
-      "name": "FeePool",
+      "name": "feePool",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1821,18 +1827,18 @@
       }
     },
     {
-      "name": "LocalCircuitSource",
+      "name": "localCircuitSource",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "MxeKeygen"
+            "name": "mxeKeygen"
           }
         ]
       }
     },
     {
-      "name": "MXEAccount",
+      "name": "mxeAccount",
       "docs": [
         "A MPC Execution Environment."
       ],
@@ -1852,27 +1858,27 @@
             }
           },
           {
-            "name": "x25519_pubkey",
+            "name": "x25519Pubkey",
             "type": {
               "defined": {
-                "name": "X25519Pubkey"
+                "name": "x25519Pubkey"
               }
             }
           },
           {
-            "name": "fallback_clusters",
+            "name": "fallbackClusters",
             "type": {
               "vec": "u32"
             }
           },
           {
-            "name": "rejected_clusters",
+            "name": "rejectedClusters",
             "type": {
               "vec": "u32"
             }
           },
           {
-            "name": "computation_definitions",
+            "name": "computationDefinitions",
             "type": {
               "vec": "u32"
             }
@@ -1885,7 +1891,7 @@
       }
     },
     {
-      "name": "Market",
+      "name": "market",
       "docs": [
         "Market state for a prediction market"
       ],
@@ -1907,91 +1913,91 @@
             "type": "string"
           },
           {
-            "name": "end_time",
+            "name": "endTime",
             "docs": [
               "End timestamp (unix)"
             ],
             "type": "i64"
           },
           {
-            "name": "fee_bps",
+            "name": "feeBps",
             "docs": [
               "Fee in basis points"
             ],
             "type": "u16"
           },
           {
-            "name": "batch_interval",
+            "name": "batchInterval",
             "docs": [
               "Batch auction interval in seconds"
             ],
             "type": "i64"
           },
           {
-            "name": "next_batch_clear",
+            "name": "nextBatchClear",
             "docs": [
               "Next batch clear timestamp"
             ],
             "type": "i64"
           },
           {
-            "name": "resolver_quorum",
+            "name": "resolverQuorum",
             "docs": [
               "Resolver quorum requirement"
             ],
             "type": "u8"
           },
           {
-            "name": "resolver_count",
+            "name": "resolverCount",
             "docs": [
               "Number of resolvers currently staked"
             ],
             "type": "u8"
           },
           {
-            "name": "attestation_count",
+            "name": "attestationCount",
             "docs": [
               "Number of resolvers who have submitted an attestation"
             ],
             "type": "u8"
           },
           {
-            "name": "collateral_vault",
+            "name": "collateralVault",
             "docs": [
               "Collateral vault"
             ],
             "type": "pubkey"
           },
           {
-            "name": "fee_vault",
+            "name": "feeVault",
             "docs": [
               "Fee vault"
             ],
             "type": "pubkey"
           },
           {
-            "name": "yes_mint",
+            "name": "yesMint",
             "docs": [
               "YES outcome token mint"
             ],
             "type": "pubkey"
           },
           {
-            "name": "no_mint",
+            "name": "noMint",
             "docs": [
               "NO outcome token mint"
             ],
             "type": "pubkey"
           },
           {
-            "name": "collateral_mint",
+            "name": "collateralMint",
             "docs": [
               "Collateral mint"
             ],
             "type": "pubkey"
           },
           {
-            "name": "cfmm_state_commitment",
+            "name": "cfmmStateCommitment",
             "docs": [
               "CFMM state commitment (hash of encrypted reserves)"
             ],
@@ -2003,35 +2009,35 @@
             }
           },
           {
-            "name": "yes_reserves",
+            "name": "yesReserves",
             "docs": [
               "Current YES reserves (public aggregate)"
             ],
             "type": "u64"
           },
           {
-            "name": "no_reserves",
+            "name": "noReserves",
             "docs": [
               "Current NO reserves (public aggregate)"
             ],
             "type": "u64"
           },
           {
-            "name": "total_liquidity",
+            "name": "totalLiquidity",
             "docs": [
               "Total liquidity"
             ],
             "type": "u64"
           },
           {
-            "name": "total_volume",
+            "name": "totalVolume",
             "docs": [
               "Total volume traded"
             ],
             "type": "u64"
           },
           {
-            "name": "batch_order_root",
+            "name": "batchOrderRoot",
             "docs": [
               "Batch order commitment root"
             ],
@@ -2043,25 +2049,25 @@
             }
           },
           {
-            "name": "batch_order_count",
+            "name": "batchOrderCount",
             "docs": [
               "Number of orders in current batch"
             ],
             "type": "u32"
           },
           {
-            "name": "resolution_state",
+            "name": "resolutionState",
             "docs": [
               "Market resolution state"
             ],
             "type": {
               "defined": {
-                "name": "ResolutionState"
+                "name": "resolutionState"
               }
             }
           },
           {
-            "name": "final_outcome",
+            "name": "finalOutcome",
             "docs": [
               "Final outcome (None if unresolved, Some(0) = NO, Some(1) = YES)"
             ],
@@ -2070,7 +2076,7 @@
             }
           },
           {
-            "name": "authority_bump",
+            "name": "authorityBump",
             "docs": [
               "Authority bump seed for PDA"
             ],
@@ -2087,7 +2093,7 @@
       }
     },
     {
-      "name": "MarketResolved",
+      "name": "marketResolved",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2107,7 +2113,7 @@
       }
     },
     {
-      "name": "NodeRef",
+      "name": "nodeRef",
       "docs": [
         "A reference to a node in the cluster.",
         "The offset is to derive the Node Account.",
@@ -2122,7 +2128,7 @@
             "type": "u32"
           },
           {
-            "name": "current_total_rewards",
+            "name": "currentTotalRewards",
             "type": "u64"
           },
           {
@@ -2133,7 +2139,7 @@
       }
     },
     {
-      "name": "OffChainCircuitSource",
+      "name": "offChainCircuitSource",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2154,23 +2160,23 @@
       }
     },
     {
-      "name": "OnChainCircuitSource",
+      "name": "onChainCircuitSource",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "is_completed",
+            "name": "isCompleted",
             "type": "bool"
           },
           {
-            "name": "upload_auth",
+            "name": "uploadAuth",
             "type": "pubkey"
           }
         ]
       }
     },
     {
-      "name": "Output",
+      "name": "output",
       "docs": [
         "An output of a computation.",
         "We currently don't support encrypted outputs yet since encrypted values are passed via",
@@ -2180,37 +2186,37 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "PlaintextBool"
+            "name": "plaintextBool"
           },
           {
-            "name": "PlaintextU8"
+            "name": "plaintextU8"
           },
           {
-            "name": "PlaintextU16"
+            "name": "plaintextU16"
           },
           {
-            "name": "PlaintextU32"
+            "name": "plaintextU32"
           },
           {
-            "name": "PlaintextU64"
+            "name": "plaintextU64"
           },
           {
-            "name": "PlaintextU128"
+            "name": "plaintextU128"
           },
           {
-            "name": "Ciphertext"
+            "name": "ciphertext"
           },
           {
-            "name": "ArcisPubkey"
+            "name": "arcisPubkey"
           },
           {
-            "name": "PlaintextFloat"
+            "name": "plaintextFloat"
           }
         ]
       }
     },
     {
-      "name": "Parameter",
+      "name": "parameter",
       "docs": [
         "A parameter of a computation.",
         "We differentiate between plaintext and encrypted parameters and data objects.",
@@ -2222,46 +2228,46 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "PlaintextBool"
+            "name": "plaintextBool"
           },
           {
-            "name": "PlaintextU8"
+            "name": "plaintextU8"
           },
           {
-            "name": "PlaintextU16"
+            "name": "plaintextU16"
           },
           {
-            "name": "PlaintextU32"
+            "name": "plaintextU32"
           },
           {
-            "name": "PlaintextU64"
+            "name": "plaintextU64"
           },
           {
-            "name": "PlaintextU128"
+            "name": "plaintextU128"
           },
           {
-            "name": "Ciphertext"
+            "name": "ciphertext"
           },
           {
-            "name": "ArcisPubkey"
+            "name": "arcisPubkey"
           },
           {
-            "name": "ArcisSignature"
+            "name": "arcisSignature"
           },
           {
-            "name": "PlaintextFloat"
+            "name": "plaintextFloat"
           },
           {
-            "name": "ManticoreAlgo"
+            "name": "manticoreAlgo"
           },
           {
-            "name": "InputDataset"
+            "name": "inputDataset"
           }
         ]
       }
     },
     {
-      "name": "PrivateTradeExecuted",
+      "name": "privateTradeExecuted",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2277,7 +2283,7 @@
       }
     },
     {
-      "name": "PrivateTradeOutput",
+      "name": "privateTradeOutput",
       "docs": [
         "The output of the callback instruction. Provided as a struct with ordered fields",
         "as anchor does not support tuples and tuple structs yet."
@@ -2286,10 +2292,10 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "field_0",
+            "name": "field0",
             "type": {
               "defined": {
-                "name": "SharedEncryptedStruct",
+                "name": "sharedEncryptedStruct",
                 "generics": [
                   {
                     "kind": "const",
@@ -2303,7 +2309,7 @@
       }
     },
     {
-      "name": "PrivateTradeQueued",
+      "name": "privateTradeQueued",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2323,7 +2329,7 @@
       }
     },
     {
-      "name": "ResolutionState",
+      "name": "resolutionState",
       "docs": [
         "Resolution state enum"
       ],
@@ -2331,22 +2337,22 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "Active"
+            "name": "active"
           },
           {
-            "name": "AwaitingAttestation"
+            "name": "awaitingAttestation"
           },
           {
-            "name": "Computing"
+            "name": "computing"
           },
           {
-            "name": "Resolved"
+            "name": "resolved"
           }
         ]
       }
     },
     {
-      "name": "ResolveMarketOutput",
+      "name": "resolveMarketOutput",
       "docs": [
         "The output of the callback instruction. Provided as a struct with ordered fields",
         "as anchor does not support tuples and tuple structs yet."
@@ -2355,10 +2361,10 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "field_0",
+            "name": "field0",
             "type": {
               "defined": {
-                "name": "SharedEncryptedStruct",
+                "name": "sharedEncryptedStruct",
                 "generics": [
                   {
                     "kind": "const",
@@ -2372,7 +2378,7 @@
       }
     },
     {
-      "name": "Resolver",
+      "name": "resolver",
       "docs": [
         "Resolver account"
       ],
@@ -2401,14 +2407,14 @@
             "type": "u64"
           },
           {
-            "name": "has_attested",
+            "name": "hasAttested",
             "docs": [
               "Has submitted attestation"
             ],
             "type": "bool"
           },
           {
-            "name": "attestation_commitment",
+            "name": "attestationCommitment",
             "docs": [
               "Encrypted attestation commitment"
             ],
@@ -2420,7 +2426,7 @@
             }
           },
           {
-            "name": "attestation_timestamp",
+            "name": "attestationTimestamp",
             "docs": [
               "Timestamp of attestation"
             ],
@@ -2444,11 +2450,11 @@
       }
     },
     {
-      "name": "SharedEncryptedStruct",
+      "name": "sharedEncryptedStruct",
       "generics": [
         {
           "kind": "const",
-          "name": "LEN",
+          "name": "len",
           "type": "usize"
         }
       ],
@@ -2456,7 +2462,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "encryption_key",
+            "name": "encryptionKey",
             "type": {
               "array": [
                 "u8",
@@ -2479,7 +2485,7 @@
                   ]
                 },
                 {
-                  "generic": "LEN"
+                  "generic": "len"
                 }
               ]
             }
@@ -2488,7 +2494,7 @@
       }
     },
     {
-      "name": "SignerAccount",
+      "name": "signerAccount",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2500,7 +2506,7 @@
       }
     },
     {
-      "name": "Timestamp",
+      "name": "timestamp",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2512,12 +2518,12 @@
       }
     },
     {
-      "name": "X25519Pubkey",
+      "name": "x25519Pubkey",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Set",
+            "name": "set",
             "fields": [
               {
                 "array": [
@@ -2528,7 +2534,7 @@
             ]
           },
           {
-            "name": "Unset",
+            "name": "unset",
             "fields": [
               {
                 "array": [
@@ -2545,4 +2551,4 @@
       }
     }
   ]
-}
+};

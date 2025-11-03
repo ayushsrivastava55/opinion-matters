@@ -1,45 +1,33 @@
+use anchor_lang::prelude::*;
+use arcium_anchor::prelude::*;
+use arcium_client::idl::arcium::types::CallbackAccount;
 use crate::constants::*;
 use crate::error::MarketError;
 use crate::state::*;
-use anchor_lang::prelude::*;
+use crate::{SubmitAttestation, ResolveMarketCallback, AttestationSubmitted}; // Import from crate root
 
-#[derive(Accounts)]
-pub struct SubmitAttestation<'info> {
-    #[account(
-        mut,
-        constraint = matches!(
-            market.resolution_state,
-            ResolutionState::Active | ResolutionState::AwaitingAttestation
-        ) @ MarketError::MarketAlreadyResolved
-    )]
-    pub market: Account<'info, Market>,
+// Handler function - account struct is defined in lib.rs for #[arcium_program] macro
 
-    #[account(
-        mut,
-        seeds = [RESOLVER_SEED, market.key().as_ref(), authority.key().as_ref()],
-        bump = resolver.bump,
-        constraint = resolver.market == market.key() @ MarketError::Unauthorized,
-    )]
-    pub resolver: Account<'info, Resolver>,
-
-    pub authority: Signer<'info>,
-}
-
-pub fn handler(ctx: Context<SubmitAttestation>, encrypted_attestation: Vec<u8>) -> Result<()> {
+pub fn handler(
+    ctx: Context<SubmitAttestation>,
+    computation_offset: u64,
+    attestation: [u8; 32],
+) -> Result<()> {
+    let clock = Clock::get()?;
+    
+    // Get keys and data before mutable borrows
+    let market_key = ctx.accounts.market.key();
+    let resolver_quorum = ctx.accounts.market.resolver_quorum;
+    let resolver_key = ctx.accounts.resolver.key();
+    let resolver_count = ctx.accounts.resolver.count;
+    
     let market = &mut ctx.accounts.market;
     let resolver = &mut ctx.accounts.resolver;
-    let clock = Clock::get()?;
 
     // Check market has ended
     require!(
         clock.unix_timestamp >= market.end_time,
         MarketError::MarketNotEnded
-    );
-
-    // Validate encrypted attestation
-    require!(
-        !encrypted_attestation.is_empty(),
-        MarketError::InvalidAttestation
     );
 
     // Update market state to awaiting attestation if needed
@@ -49,48 +37,53 @@ pub fn handler(ctx: Context<SubmitAttestation>, encrypted_attestation: Vec<u8>) 
 
     let first_attestation = !resolver.has_attested;
 
-    // Store attestation commitment (hash of encrypted attestation)
-    // In production, compute proper hash
-    let mut attestation_commitment = [0u8; 32];
-    let len = encrypted_attestation.len().min(32);
-    attestation_commitment[..len].copy_from_slice(&encrypted_attestation[..len]);
-
-    resolver.attestation_commitment = attestation_commitment;
-
-    if first_attestation {
-        market.attestation_count = market
-            .attestation_count
-            .checked_add(1)
-            .ok_or(MarketError::Overflow)?;
-    }
-
+    // Store attestation commitment
+    resolver.attestation_commitment = attestation;
     resolver.has_attested = true;
+    resolver.attestation_timestamp = clock.unix_timestamp;
 
-    msg!(
-        "Attestation submitted by resolver {} for market {}",
-        ctx.accounts.authority.key(),
-        market.key()
-    );
+    // Check if we have enough attestations to trigger resolution
+    if resolver.count + 1 >= resolver_quorum {
+        // Drop mutable borrows before calling queue_computation
+        drop(market);
+        drop(resolver);
+        
+        // Queue the resolution computation to Arcium
+        let args = vec![
+            Argument::EncryptedU32(attestation),
+            // Read current market state
+            Argument::Account(market_key, MARKET_YES_RESERVES_OFFSET, 8),
+            Argument::Account(market_key, MARKET_NO_RESERVES_OFFSET, 8),
+        ];
 
-    // Check if we have enough attestations to trigger MPC resolution
-    let attested_count = market.attestation_count;
-    if attested_count >= market.resolver_quorum {
-        market.resolution_state = ResolutionState::Computing;
-        msg!("Quorum reached. Market ready for MPC resolution.");
+        ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;
 
-        emit!(ResolutionReady {
-            market: market.key(),
-            attestation_count: attested_count,
-            quorum: market.resolver_quorum,
-        });
+        queue_computation(
+            ctx.accounts,
+            computation_offset,
+            args,
+            None,
+            vec![ResolveMarketCallback::callback_ix(&[
+                CallbackAccount {
+                    pubkey: market_key,
+                    is_writable: true,
+                }
+            ])],
+        )?;
+
+        msg!(
+            "Market resolution queued to Arcium MPC for market {}",
+            market_key
+        );
     }
+
+    emit!(AttestationSubmitted {
+        market: market_key,
+        resolver: resolver_key,
+        timestamp: clock.unix_timestamp,
+        count: resolver_count,
+        quorum: resolver_quorum,
+    });
 
     Ok(())
-}
-
-#[event]
-pub struct ResolutionReady {
-    pub market: Pubkey,
-    pub attestation_count: u8,
-    pub quorum: u8,
 }

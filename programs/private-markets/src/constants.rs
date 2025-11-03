@@ -21,6 +21,9 @@ pub const MAX_BATCH_INTERVAL: i64 = 86400;
 /// Minimum resolver quorum
 pub const MIN_QUORUM: u8 = 1;
 
+/// Minimum stake required to become a resolver (in lamports or smallest token unit)
+pub const MIN_RESOLVER_STAKE: u64 = 1_000_000; // 1 token with 6 decimals
+
 /// CFMM constant product multiplier (for precision)
 pub const CFMM_PRECISION: u64 = 1_000_000;
 
@@ -47,3 +50,26 @@ pub const RESOLVER_SEED: &[u8] = b"resolver";
 
 /// Seed for batch state PDA
 pub const BATCH_SEED: &[u8] = b"batch";
+
+// Arcium Computation Definition Offsets (must match Arcium.toml)
+/// Computation offset for private_trade circuit
+pub const COMP_DEF_OFFSET_PRIVATE_TRADE: u32 = 1000;
+
+/// Computation offset for batch_clear circuit
+pub const COMP_DEF_OFFSET_BATCH_CLEAR: u32 = 2000;
+
+/// Computation offset for resolve_market circuit
+pub const COMP_DEF_OFFSET_RESOLVE_MARKET: u32 = 3000;
+
+// Account field offsets for Argument::Account() usage
+// Market account structure offsets (see state.rs for field layout)
+/// Offset to cfmm_state_commitment field in Market account (401 bytes from start)
+pub const MARKET_CFMM_COMMITMENT_OFFSET: u32 = 401;
+
+/// Offset to yes_reserves field in Market account (433 bytes from start)
+pub const MARKET_YES_RESERVES_OFFSET: u32 = 433;
+
+/// Offset to no_reserves field in Market account (441 bytes from start)
+pub const MARKET_NO_RESERVES_OFFSET: u32 = 441;
+
+// Note: SIGN_PDA_SEED is provided by arcium_anchor::prelude

@@ -43,6 +43,9 @@ pub struct Market {
     /// NO outcome token mint
     pub no_mint: Pubkey,
     
+    /// Collateral mint
+    pub collateral_mint: Pubkey,
+    
     /// CFMM state commitment (hash of encrypted reserves)
     pub cfmm_state_commitment: [u8; 32],
     
@@ -51,6 +54,9 @@ pub struct Market {
     
     /// Current NO reserves (public aggregate)
     pub no_reserves: u64,
+    
+    /// Total liquidity
+    pub total_liquidity: u64,
     
     /// Total volume traded
     pub total_volume: u64,
@@ -64,8 +70,11 @@ pub struct Market {
     /// Market resolution state
     pub resolution_state: ResolutionState,
     
-    /// Final outcome (0 = NO, 1 = YES, 255 = unresolved)
-    pub final_outcome: u8,
+    /// Final outcome (None if unresolved, Some(0) = NO, Some(1) = YES)
+    pub final_outcome: Option<u8>,
+    
+    /// Authority bump seed for PDA
+    pub authority_bump: u8,
     
     /// Bump seed for PDA
     pub bump: u8,
@@ -86,14 +95,17 @@ impl Market {
         32 + // fee_vault
         32 + // yes_mint
         32 + // no_mint
+        32 + // collateral_mint
         32 + // cfmm_state_commitment
         8 + // yes_reserves
         8 + // no_reserves
+        8 + // total_liquidity
         8 + // total_volume
         32 + // batch_order_root
         4 + // batch_order_count
         1 + // resolution_state
-        1 + // final_outcome
+        1 + 1 + // final_outcome (Option<u8>)
+        1 + // authority_bump
         1; // bump
 }
 
@@ -110,6 +122,17 @@ pub enum ResolutionState {
     Resolved,
 }
 
+/// Batch order data for submission
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct BatchOrderData {
+    /// Encrypted order commitment
+    pub commitment: [u8; 32],
+    /// Order amount
+    pub amount: u64,
+    /// True for buy, false for sell
+    pub is_buy: bool,
+}
+
 /// Resolver account
 #[account]
 pub struct Resolver {
@@ -120,7 +143,7 @@ pub struct Resolver {
     pub market: Pubkey,
     
     /// Amount staked
-    pub stake_amount: u64,
+    pub stake: u64,
     
     /// Has submitted attestation
     pub has_attested: bool,
@@ -128,8 +151,11 @@ pub struct Resolver {
     /// Encrypted attestation commitment
     pub attestation_commitment: [u8; 32],
     
-    /// Timestamp of stake
-    pub staked_at: i64,
+    /// Timestamp of attestation
+    pub attestation_timestamp: i64,
+    
+    /// Count of attestations (for tracking)
+    pub count: u8,
     
     /// Bump seed
     pub bump: u8,
@@ -139,10 +165,11 @@ impl Resolver {
     pub const LEN: usize = 8 + // discriminator
         32 + // authority
         32 + // market
-        8 + // stake_amount
+        8 + // stake
         1 + // has_attested
         32 + // attestation_commitment
-        8 + // staked_at
+        8 + // attestation_timestamp
+        1 + // count
         1; // bump
 }
 

@@ -12,19 +12,21 @@ build/
 dist/
 out/
 
-# Misc
-.DS_Store
-*.pem
+# Environment Variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Debug
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+build.log
+deploy.log
+arcium-deploy.log
 
 # IDE
 .vscode/
@@ -32,6 +34,7 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+.DS_Store
 
 # Solana & Anchor
 .anchor/
@@ -41,17 +44,62 @@ test-ledger/
 deploy/
 keys/
 *.so
+artifacts/
 
 # Arcium
 .arcium/
 mxe_state/
 computation_cache/
 
+# Security - NEVER commit private keys!
+**/id.json
+**/*keypair*.json
+*.pem
+!app/.env.example
+
 # Vercel
 .vercel
 
 # Next.js
 .next/
-*.md
+
+# Temporary development files
+**/fix-*.ts
+**/test-*.ts
+scripts/temp/
+
+# Keep important documentation
 !README.md
 !**/README.md
+!docs/**/*.md
+!QUICKSTART.md
+
+# Temporary status/analysis markdown files (development notes)
+ARCIUM_ANALYSIS.md
+ARCIUM_COMPARISON.md
+ARCIUM_COMP_DEF_ISSUE.md
+ARCIUM_DEVNET_ISSUE.md
+BUILD_LOG.md
+COMMANDS.md
+CURRENT_STATUS.md
+CYBERPUNK_ENHANCEMENTS.md
+DEBUGGING_X25519_ERROR.md
+DEPLOYMENT_SUMMARY.md
+DEVELOPMENT.md
+ENCRYPTION_FIX.md
+ERROR_MESSAGES_FIXED.md
+FINAL_INTEGRATION_STATUS.md
+FINAL_STATUS.md
+FIXES_APPLIED.md
+FIXES_NEEDED.md
+FRONTEND_INTEGRATION.md
+HACKATHON_ASSESSMENT.md
+INTEGRATION_COMPLETE.md
+MXE_INITIALIZED.md
+PROJECT_SUMMARY.md
+SETUP_ARCIUM.md
+STATUS.md
+SUCCESS_SUMMARY.md
+
+# Root level package-lock (use workspace package-lock)
+/package-lock.json

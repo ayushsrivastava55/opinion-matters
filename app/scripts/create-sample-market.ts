@@ -58,6 +58,8 @@ async function main() {
 
   const program = await loadProgram(connection, provider)
 
+  console.log('Program ID:', program.programId.toString())
+
   // Create collateral mint (USDC mock)
   const collateralMint = await createMint(
     connection,

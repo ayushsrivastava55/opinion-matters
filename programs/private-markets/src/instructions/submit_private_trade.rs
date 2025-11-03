@@ -1,24 +1,20 @@
 use anchor_lang::prelude::*;
+use arcium_client::idl::arcium::types::CallbackAccount;
+use arcium_anchor::prelude::*;
+use crate::constants::*;
 use crate::error::MarketError;
 use crate::state::*;
+use crate::{SubmitPrivateTrade, PrivateTradeCallback, PrivateTradeQueued}; // Import from crate root
 
-#[derive(Accounts)]
-pub struct SubmitPrivateTrade<'info> {
-    #[account(
-        mut,
-        constraint = market.resolution_state == ResolutionState::Active @ MarketError::MarketAlreadyResolved
-    )]
-    pub market: Account<'info, Market>,
-
-    #[account(mut)]
-    pub user: Signer<'info>,
-}
+// Handler function - account struct is defined in lib.rs for #[arcium_program] macro
 
 pub fn handler(
     ctx: Context<SubmitPrivateTrade>,
-    encrypted_order: Vec<u8>,
+    computation_offset: u64,
+    encrypted_order: [u8; 32],
+    client_pubkey: [u8; 32],
 ) -> Result<()> {
-    let market = &mut ctx.accounts.market;
+    let market = &ctx.accounts.market;
     let clock = Clock::get()?;
 
     // Check market hasn't ended
@@ -27,47 +23,51 @@ pub fn handler(
         MarketError::MarketEnded
     );
 
-    // Validate encrypted order is not empty
-    require!(
-        !encrypted_order.is_empty(),
-        MarketError::InvalidStateCommitment
-    );
+    // Build arguments for the encrypted instruction
+    // Following blackjack pattern: use Argument::Account() to read on-chain data
+    let args = vec![
+        // User's public key (for re-encrypting results back to them)
+        Argument::ArcisPubkey(client_pubkey),
+        // Encrypted order data
+        Argument::EncryptedU32(encrypted_order),
+        // Read current CFMM state directly from market account
+        Argument::Account(ctx.accounts.market.key(), MARKET_YES_RESERVES_OFFSET, 8),
+        Argument::Account(ctx.accounts.market.key(), MARKET_NO_RESERVES_OFFSET, 8),
+        Argument::Account(ctx.accounts.market.key(), MARKET_CFMM_COMMITMENT_OFFSET, 32),
+    ];
 
-    // In a full implementation, this would:
-    // 1. Submit encrypted_order to Arcium MPC cluster
-    // 2. Arcium nodes would:
-    //    - Decrypt order collaboratively
-    //    - Validate user has sufficient collateral
-    //    - Compute CFMM price impact
-    //    - Update private CFMM state
-    //    - Return new state commitment + minimal public deltas
-    // 3. Call update_cfmm_state with results
-    //
-    // For now, we store the order commitment and emit an event
-    // The Arcium computation will be triggered off-chain
+    // Set the sign PDA bump (required by Arcium)
+    ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;
+
+    // Queue the computation to Arcium MPC cluster
+    // This will:
+    // 1. Submit encrypted inputs to Arcium
+    // 2. MPC nodes collaboratively execute private_trade circuit
+    // 3. Callback instruction will be invoked with results
+    queue_computation(
+        ctx.accounts,
+        computation_offset,
+        args,
+        None,  // No additional callback accounts needed
+        vec![PrivateTradeCallback::callback_ix(&[
+            CallbackAccount {
+                pubkey: ctx.accounts.market.key(),
+                is_writable: true,
+            }
+        ])],  // Callback instruction with market account
+    )?;
 
     msg!(
-        "Private trade submitted for market {} by user {}",
+        "Private trade queued to Arcium MPC for market {} by user {}",
         market.key(),
-        ctx.accounts.user.key()
+        ctx.accounts.payer.key()
     );
-    msg!("Encrypted order length: {}", encrypted_order.len());
-
-    // Emit event for off-chain Arcium trigger
-    emit!(PrivateTradeSubmitted {
+    // Emit event for tracking
+    emit!(PrivateTradeQueued {
         market: market.key(),
-        user: ctx.accounts.user.key(),
+        user: ctx.accounts.payer.key(),
         timestamp: clock.unix_timestamp,
-        order_size: encrypted_order.len() as u32,
     });
 
     Ok(())
-}
-
-#[event]
-pub struct PrivateTradeSubmitted {
-    pub market: Pubkey,
-    pub user: Pubkey,
-    pub timestamp: i64,
-    pub order_size: u32,
 }

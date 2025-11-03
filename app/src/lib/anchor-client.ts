@@ -2,6 +2,7 @@
 
 import { AnchorProvider, Program, type Idl } from '@coral-xyz/anchor'
 import { Connection, PublicKey, type Transaction } from '@solana/web3.js'
+import { PROGRAM_ID } from '@/config/program'
 
 export async function getAnchorProgram(
   connection: Connection,
@@ -11,10 +12,8 @@ export async function getAnchorProgram(
     signAllTransactions<T extends Transaction[]>(txs: T): Promise<T>
   },
 ): Promise<Program> {
-  const programIdStr =
-    process.env.NEXT_PUBLIC_PROGRAM_ID || process.env.PROGRAM_ID || 'G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro'
-
-  const programId = new PublicKey(programIdStr)
+  // Always use PROGRAM_ID from config (single source of truth)
+  const programId = PROGRAM_ID
   const provider = new AnchorProvider(connection, wallet as any, {})
 
   let idl: Idl | null = null
@@ -26,14 +25,23 @@ export async function getAnchorProgram(
   
   if (!idl) {
     try {
-      const localIdl = await import('@/idl/private_markets.json')
-      idl = (localIdl as { default: Idl }).default
+      const localIdlModule = await import('@/idl/private_markets.json')
+      idl = (localIdlModule as { default: Idl }).default || localIdlModule as any as Idl
     } catch (localError) {
       console.error('Failed to load local IDL', localError)
-      throw new Error('Unable to fetch program IDL. Ensure the program is deployed and IDL is initialized, or place the IDL at app/src/idl/private_markets.json')
+      throw new Error('Unable to connect to the market system. Please try again later or contact support.')
     }
   }
 
-  return new Program(idl, provider)
+  // Ensure IDL has correct address (clone to avoid mutating original)
+  const idlWithCorrectAddress: Idl = {
+    ...idl,
+    address: programId.toString()
+  }
+
+  // Create program with explicit programId parameter (Anchor v0.30+)
+  return new Program(idlWithCorrectAddress, provider)
 }
+
+
 

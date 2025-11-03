@@ -35,6 +35,9 @@ pub enum MarketError {
     #[msg("Not enough resolvers staked")]
     InsufficientResolvers,
     
+    #[msg("Insufficient stake amount")]
+    InsufficientStake,
+    
     #[msg("Resolver already staked")]
     ResolverAlreadyStaked,
     
@@ -61,4 +64,16 @@ pub enum MarketError {
     
     #[msg("Slippage tolerance exceeded")]
     SlippageExceeded,
+
+    #[msg("Arcium MPC computation failed")]
+    ComputationFailed,
+
+    #[msg("Arcium MPC computation aborted")]
+    ComputationAborted,
+
+    #[msg("Invalid resolution state")]
+    InvalidResolutionState,
+
+    #[msg("Cluster not set")]
+    ClusterNotSet,
 }

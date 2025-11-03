@@ -92,11 +92,11 @@ export default function Home() {
           <header className="sticky top-0 z-30 border-b border-white/10 bg-black/40 backdrop-blur-xl">
             <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
               <div className="flex items-center gap-3">
-                <Link href="/" className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-rose-500 to-amber-400 text-xl font-semibold text-white shadow-lg shadow-orange-500/30">
+                <Link href="/" className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-rose-500 to-amber-400 text-xl font-bold text-white shadow-lg shadow-orange-500/50 neon-glow hover:shadow-orange-500/70 transition-all duration-300 hover:scale-105">
                   PM
                 </Link>
                 <div>
-                  <p className="text-sm uppercase tracking-[0.3em] text-white/60">Arcium x Solana</p>
+                  <p className="text-sm uppercase tracking-[0.3em] text-orange-300/80 font-mono">Arcium x Solana</p>
                   <h1 className="text-lg font-semibold text-white">Private Markets</h1>
                 </div>
               </div>
@@ -125,15 +125,15 @@ export default function Home() {
           </header>
 
           <main className="flex-1">
-            <section className="relative overflow-hidden pb-24 pt-16 sm:pt-24">
+            <section className="cyber-grid relative overflow-hidden pb-24 pt-16 sm:pt-24">
               <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 text-center">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7 }}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs font-medium uppercase tracking-[0.4em] text-white/60"
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.4em] text-orange-300 neon-glow pulse-ring backdrop-blur-sm"
                 >
-                  <Timer className="h-4 w-4 text-orange-300" />
+                  <Timer className="h-4 w-4 text-orange-300 animate-pulse" />
                   Live on Devnet · MPC shielded
                 </motion.div>
 
@@ -249,11 +249,11 @@ export default function Home() {
                       </li>
                     </ul>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-orange-500/20 via-rose-500/20 to-amber-400/20 p-6">
+                  <div className="scanline rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-500/20 via-rose-500/20 to-amber-400/20 p-6 neon-glow">
                     <div className="space-y-4 text-sm">
                       <div className="flex items-center justify-between text-white/70">
-                        <span>Session encryption</span>
-                        <span className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs text-orange-300">
+                        <span className="encrypted-text">Session encryption</span>
+                        <span className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs text-orange-300 neon-glow animate-pulse">
                           <ShieldCheck className="h-4 w-4" /> MPC active
                         </span>
                       </div>
@@ -280,12 +280,15 @@ export default function Home() {
             </section>
           </main>
 
-          <footer className="border-t border-white/10 bg-black/40 py-8">
+          <footer className="border-t border-orange-500/10 bg-black/40 backdrop-blur-xl py-8">
             <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-white/60 sm:flex-row">
-              <p>© {new Date().getFullYear()} Private Markets. Built for privacy.</p>
+              <p className="font-mono">© {new Date().getFullYear()} Private Markets. <span className="text-orange-400">Built for privacy.</span></p>
               <div className="flex items-center gap-4">
-                <a href="https://github.com" className="transition hover:text-white">Docs</a>
-                <a href="mailto:team@privatemarkets.xyz" className="transition hover:text-white">Contact</a>
+                <a href="https://github.com" className="transition hover:text-orange-300">Docs</a>
+                <span className="text-white/30">•</span>
+                <a href="mailto:team@privatemarkets.xyz" className="transition hover:text-orange-300">Contact</a>
+                <span className="text-white/30">•</span>
+                <span className="text-xs text-orange-400/60 font-mono">ENCRYPTED</span>
               </div>
             </div>
           </footer>

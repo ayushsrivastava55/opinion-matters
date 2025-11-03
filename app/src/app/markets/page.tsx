@@ -23,6 +23,7 @@ import { NoSSR } from '@/components/no-ssr'
 import { WalletButton } from '@/components/wallet-button'
 import type { MarketRecord, MarketResolutionState } from '@/lib/market-types'
 import { getAnchorProgram } from '@/lib/anchor-client'
+import { submitPrivateTrade } from '@/lib/trading-utils'
 import { Buffer } from 'buffer'
 import { BN } from '@coral-xyz/anchor'
 import {
@@ -250,25 +251,37 @@ export default function MarketsPage() {
       } catch (_) {
         throw new Error('This market is not deployed on-chain. Please refresh or pick another market.')
       }
-      const order = { side: tradeSide, amount: tradeAmount, slippage: 0.01 }
-      const encoder = new TextEncoder()
-      const payload = encoder.encode(JSON.stringify(order))
 
-      await program.methods
-        .submitPrivateTrade(Buffer.from(payload))
-        .accounts({
-          market: marketPk,
-          user: wallet.publicKey,
-        })
-        .rpc()
+      // Submit private trade with full Arcium MPC integration
+      const tx = await submitPrivateTrade(
+        program,
+        connection,
+        marketPk,
+        wallet.publicKey,
+        tradeSide,
+        tradeAmount,
+        100 // max price in cents
+      )
 
+      console.log('Trade submitted successfully:', tx)
       setTradingMarket(null)
       // Refresh list after submit
       loadMarkets()
     } catch (e: any) {
       console.error('Trade failed', e)
-      const logs = e?.transactionLogs ? `\nLogs: ${e.transactionLogs.join('\n')}` : ''
-      setTradeError((e?.message || 'Failed to submit trade') + logs)
+      // Log transaction details for debugging but show user-friendly message
+      if (e?.transactionLogs) {
+        console.error('Transaction logs:', e.transactionLogs.join('\n'))
+      }
+      // Clean up error message for user display
+      const userMessage = e?.message || 'Failed to submit trade'
+      setTradeError(
+        userMessage.includes('Computation definition') ||
+        userMessage.includes('MXE') ||
+        userMessage.includes('Account not initialized')
+          ? 'This market is temporarily unavailable. Please try again later.'
+          : userMessage
+      )
     } finally {
       setTradeBusy(false)
     }
@@ -485,7 +498,7 @@ export default function MarketsPage() {
                   <MagicCard className="border border-red-500/40 bg-red-500/10 text-left text-red-200">
                     <p className="text-sm font-semibold">{error}</p>
                     <p className="mt-1 text-xs text-red-200/80">
-                      Ensure your DATABASE_URL environment variable points to a Neon instance with the markets table seeded.
+                      If this problem continues, please refresh the page or contact support.
                     </p>
                   </MagicCard>
                 )}

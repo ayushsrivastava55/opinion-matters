@@ -15,6 +15,143 @@ A privacy-preserving prediction market protocol where user information (orders, 
 - **Trust-Minimized Resolution**: Decentralized resolver network with MPC aggregation
 - **Permissionless Markets**: Anyone can create binary prediction markets
 
+## How Arcium Powers Privacy
+
+### The Problem
+Traditional prediction markets expose all orders and positions publicly, enabling:
+- **Front-running**: Bots see your order and trade ahead of you
+- **Copytrading**: Whales' positions visible → everyone follows → herding
+- **Manipulation**: Spoofing, wash trading, and price manipulation
+- **Social pressure**: Opinion markets biased because votes are public
+
+### Our Solution with Arcium MPC
+
+This project uses **Arcium's Multi-Party Computation (MPC)** to keep trading activity confidential while maintaining verifiable on-chain settlement.
+
+#### 1. Private Trade Execution
+
+**Without Arcium:**
+```
+User submits order → Order visible to everyone → Front-running → Unfair prices
+```
+
+**With Arcium:**
+```
+User → Encrypt order (client-side) → Submit to Solana → Queue to Arcium MPC →
+MPC nodes jointly compute CFMM → Only aggregate price revealed → Callback updates state
+```
+
+**What's Private:**
+- Individual order amounts ✅
+- Order sides (YES/NO) ✅
+- User positions ✅
+- Slippage tolerance ✅
+
+**What's Public (Minimal):**
+- Aggregate CFMM reserves (necessary for pricing)
+- State commitment hash
+- Transaction occurred (not details)
+
+#### 2. Sealed-Bid Batch Auctions
+
+**Privacy Benefit:** Prevents timing attacks and MEV
+- All orders encrypted until batch clears
+- MPC computes uniform clearing price
+- No order can be front-run or sandwiched
+
+#### 3. Private Resolution
+
+**Privacy Benefit:** Protects resolvers from retaliation
+- Resolvers submit encrypted attestations
+- MPC aggregates using weighted voting
+- Final outcome revealed without exposing individual votes
+
+### Technical Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     User (Browser)                           │
+│  1. Generate x25519 keypair                                  │
+│  2. Encrypt order: { amount, side, max_price }              │
+│     using @arcium-hq/client + @noble/curves                 │
+└────────────────────────┬────────────────────────────────────┘
+                         │ Encrypted ciphertext
+                         ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Solana Program (Anchor + Arcium SDK)            │
+│  3. Validate market state                                   │
+│  4. queue_computation() CPI to Arcium program               │
+│     - Pass encrypted inputs + current CFMM state            │
+│     - Specify callback instruction                          │
+└────────────────────────┬────────────────────────────────────┘
+                         │ Computation queued
+                         ↓
+┌─────────────────────────────────────────────────────────────┐
+│                  Arcium MPC Cluster                          │
+│  5. Nodes collaboratively process encrypted circuit:        │
+│     - Decrypt using threshold cryptography                   │
+│     - Execute private_trade.rs circuit:                      │
+│       • Validate collateral                                  │
+│       • Compute CFMM: k = x * y                             │
+│       • Calculate slippage                                   │
+│       • Update encrypted reserves                            │
+│     - Generate cryptographic proof                           │
+└────────────────────────┬────────────────────────────────────┘
+                         │ Computation complete + proof
+                         ↓
+┌─────────────────────────────────────────────────────────────┐
+│        Callback Instruction (private_trade_callback)         │
+│  6. Verify MPC signatures                                   │
+│  7. Update market state:                                    │
+│     - New CFMM reserves                                     │
+│     - State commitment                                       │
+│     - Volume metrics                                         │
+│  8. Emit minimal public event                               │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ↓
+                User sees trade executed
+           (Position details remain private)
+```
+
+### Three Confidential Computations
+
+#### 1. `private_trade` (encrypted-ixs/private_trade.rs)
+- **Inputs (Encrypted):** Trade amount, side (YES/NO), max price, current CFMM state
+- **Computation:** Constant product market maker (k = x * y), slippage check, reserve updates
+- **Outputs:** New reserves, state commitment
+- **Privacy:** Individual trade details never revealed
+
+#### 2. `batch_clear` (encrypted-ixs/batch_clear.rs)
+- **Inputs (Encrypted):** Multiple sealed orders, CFMM state
+- **Computation:** Uniform price auction clearing, order matching, fills
+- **Outputs:** Clearing price, aggregate fills, new CFMM state
+- **Privacy:** Individual orders hidden until clearing
+
+#### 3. `resolve_market` (encrypted-ixs/resolve_market.rs)
+- **Inputs (Encrypted):** Resolver attestations with stake weights
+- **Computation:** Weighted voting aggregation, outcome determination
+- **Outputs:** Final outcome (YES/NO), confidence score
+- **Privacy:** Individual resolver votes protected
+
+### Why Arcium is Essential
+
+**Alternatives Considered:**
+
+| Approach | Speed | Security | Privacy | Composability |
+|----------|-------|----------|---------|---------------|
+| **ZK Proofs** | ⚠️ Slow | ✅ High | ✅ High | ⚠️ Limited |
+| **TEEs (SGX)** | ✅ Fast | ⚠️ Single point of failure | ✅ High | ✅ Good |
+| **Separate Chain** | ⚠️ Fragmented | ✅ High | ✅ High | ❌ Bridge risks |
+| **Arcium MPC** | ✅ Fast | ✅ Decentralized BFT | ✅ High | ✅ Native Solana |
+
+**Arcium Advantages:**
+- ✅ **Fast**: Executes at Solana speed
+- ✅ **Decentralized**: Byzantine fault tolerant, no single point of failure
+- ✅ **Verifiable**: Cryptographic proofs on-chain
+- ✅ **Composable**: Integrates directly with Solana programs
+- ✅ **Flexible**: Supports complex computations (CFMM, auctions, aggregation)
+
 ## Architecture
 
 - **Onchain (Solana)**: Market registry, collateral vaults, outcome tokens, settlement

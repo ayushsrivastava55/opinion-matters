@@ -10,7 +10,8 @@ export function getDb(): NeonClient {
   const url = process.env.DATABASE_URL
 
   if (!url) {
-    throw new Error('DATABASE_URL environment variable is not set')
+    console.error('DATABASE_URL environment variable is not set')
+    throw new Error('Database connection unavailable. Please try again later.')
   }
 
   if (!globalThis.__neonClient) {
