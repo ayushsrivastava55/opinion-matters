@@ -6,18 +6,20 @@ import { getMXEAccAddress } from "@arcium-hq/client";
  * Program Configuration
  */
 
-// Program IDs
+// Program IDs (deployed via arcium deploy)
 export const PROGRAM_ID = new PublicKey(
-  "AjSL49GvLcfvarTXBcTX1fk9WqxH6LFVLpWnh8bgGtnK"
+  "DkZ8hXcjyoYTWUDD4VZ35PXP2HHA6bF8XRmSQXoqrprW"
 );
 
 export const ARCIUM_PROGRAM_ID = new PublicKey(
-  "Arc1umF1yAXzJJaQheFMv3dJ34P6GYmr3yFetbGWJX6"
+  "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
 );
 
 // Arcium MXE Account (Multi-party eXecution Environment)
-// Derived dynamically from PROGRAM_ID using Arcium SDK
-export const MXE_ACCOUNT = getMXEAccAddress(PROGRAM_ID);
+// NOTE: SDK getMXEAccAddress() is buggy - hardcoding the actual on-chain address
+// SDK derives: 2hxh9jHVDTAMJErBoQ5RhgB4jKWgikXb41nNCrGo9LEs (wrong!)
+// Actual MXE created by arcium init-mxe: s3XWoMvzwCY93Fk5VNLDzyudNFQafoh1PwnABmscqSH
+export const MXE_ACCOUNT = new PublicKey("34zXR49QSmNeuoH8LmoKgCJQo7vfATD57iD6Ubo2f5Pz");
 
 // Arcium System Accounts (Devnet)
 export const ARCIUM_FEE_POOL = new PublicKey(
@@ -48,7 +50,7 @@ export const SEEDS = {
   NO_MINT: "no_mint",
   RESOLVER: "resolver",
   BATCH: "batch",
-  SIGN_PDA: "sign_pda",
+  SIGN_PDA: "SignerAccount", // Must match Arcium SDK SIGN_PDA_SEED
 } as const;
 
 /**

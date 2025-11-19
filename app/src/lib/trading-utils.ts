@@ -1,7 +1,7 @@
 "use client"
 
 import { Program, BN, type AnchorProvider } from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram, Transaction, Connection, SYSVAR_CLOCK_PUBKEY } from "@solana/web3.js";
+import { PublicKey, SystemProgram, Transaction, Connection } from "@solana/web3.js";
 import {
   encryptTradeOrder,
   type TradeOrderPlaintext,
@@ -17,6 +17,9 @@ import {
 } from "@arcium-hq/client";
 import {
   PROGRAM_ID,
+  MXE_ACCOUNT,
+} from "../config/program";
+import {
   deriveSignPda,
 } from "./arcium-utils";
 
@@ -58,18 +61,39 @@ export async function submitPrivateTrade(
   const computationOffsetBytes = generateRandomBytes(8);
   const computationOffset = new BN(computationOffsetBytes);
 
-  // 3. Derive all required Arcium accounts using SDK helpers
+  // 3. Derive all required Arcium accounts using SDK helpers with OUR program ID
   const [signPda] = deriveSignPda();
-  const mxeAccount = getMXEAccAddress(programId);
+  const mxeAccount = MXE_ACCOUNT;
   const mempoolAccount = getMempoolAccAddress(programId);
   const executingPool = getExecutingPoolAccAddress(programId);
   const computationAccount = getComputationAccAddress(programId, computationOffset);
-  const compDefAccount = getCompDefAccAddress(
-    programId,
-    Buffer.from(getCompDefAccOffset("private_trade")).readUInt32LE()
+
+  // Manually derive comp def PDA using correct seeds (SDK derives wrong address)
+  // Seeds: [b"ComputationDefinitionAccount", callback_program_id, offset_bytes]
+  const arciumProgramId = new PublicKey('Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp');
+  const offsetBytes = Buffer.alloc(4);
+  offsetBytes.writeUInt32LE(Buffer.from(getCompDefAccOffset("private_trade")).readUInt32LE());
+  const [compDefAccount] = PublicKey.findProgramAddressSync(
+    [Buffer.from('ComputationDefinitionAccount'), programId.toBuffer(), offsetBytes],
+    arciumProgramId
   );
-  // Use cluster offset 1078779259 (valid devnet cluster as per deployment)
-  const clusterAccount = getClusterAccAddress(1078779259);
+
+  // Manually derive cluster PDA using correct seeds (SDK derives wrong address)
+  // Seeds: [b"Cluster", offset_bytes]
+  const CLUSTER_OFFSET = 1;
+  const clusterOffsetBytes = Buffer.alloc(4);
+  clusterOffsetBytes.writeUInt32LE(CLUSTER_OFFSET);
+  const [clusterAccount] = PublicKey.findProgramAddressSync(
+    [Buffer.from('Cluster'), clusterOffsetBytes],
+    arciumProgramId
+  );
+
+  // Derive Arcium Clock PDA (NOT the Solana sysvar clock!)
+  // Seeds: [b"ClockAccount"] per Arcium SDK
+  const [clockAccount] = PublicKey.findProgramAddressSync(
+    [Buffer.from('ClockAccount')],
+    arciumProgramId
+  );
 
   // 4. Convert pub_key to Array (client_pubkey expected as [u8; 32])
   const pubKeyArray = Array.from(encrypted.pub_key);
@@ -77,38 +101,22 @@ export async function submitPrivateTrade(
   // Log account addresses for debugging
   console.log('🔍 Trade Submission Details:');
   console.log('  Market:', market.toBase58());
+  console.log('  Sign PDA:', signPda.toBase58());
   console.log('  CompDef Account:', compDefAccount.toBase58());
   console.log('  MXE Account:', mxeAccount.toBase58());
   console.log('  Cluster Account:', clusterAccount.toBase58());
+  console.log('  Clock Account (Arcium PDA):', clockAccount.toBase58());
   console.log('  Computation Offset:', computationOffset.toString());
 
-  // 5. Check if computation definition is initialized, and initialize if needed
-  const compDefInfo = await connection.getAccountInfo(compDefAccount);
-  if (!compDefInfo || compDefInfo.data.length === 0) {
-    console.log("⚠️ Computation definition not initialized. Attempting to initialize...");
-    try {
-      await initializeComputationDefinition(
-        program,
-        connection,
-        userPublicKey,
-        "private_trade"
-      );
-      console.log("✅ Computation definition initialized successfully");
-    } catch (initError: any) {
-      console.error("Failed to initialize computation definition:", initError);
-      throw new Error(
-        `Computation definition not initialized. Please initialize it first: ${initError.message || initError}`
-      );
-    }
-  }
-  
-  // 6. Build and send transaction
+  // 5. Build and send transaction
+  // Note: We let the transaction be built and sent to Phantom first
+  // Then handle errors during execution. This allows Phantom popup to appear.
   // Fixed addresses from IDL
   const poolAccount = new PublicKey('7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3'); // Arcium pool account
-  const arciumProgramId = new PublicKey('BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6');
-  
+
   try {
-    const tx = await program.methods
+    // Build transaction instruction
+    const ix = await program.methods
       .submitPrivateTrade(
         computationOffset,
         // Encrypted order is a single [u8; 32] per IDL; use the commitment/ciphertext
@@ -126,30 +134,84 @@ export async function submitPrivateTrade(
         compDefAccount,
         clusterAccount,
         poolAccount,
-        clockAccount: SYSVAR_CLOCK_PUBKEY,
+        clockAccount,
         systemProgram: SystemProgram.programId,
         arciumProgram: arciumProgramId,
       })
-      .rpc({ commitment: "confirmed" });
+      .instruction();
 
-    return tx;
+    // Create transaction with instruction
+    const transaction = new Transaction().add(ix);
+    transaction.feePayer = userPublicKey;
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+
+    // Get wallet from provider
+    const provider = program.provider as AnchorProvider;
+    const wallet = provider.wallet;
+
+    // Sign transaction with wallet
+    const signedTx = await wallet.signTransaction(transaction);
+
+    // Send transaction directly with connection
+    const signature = await connection.sendRawTransaction(signedTx.serialize(), {
+      skipPreflight: true,
+      maxRetries: 3
+    });
+
+    // Confirm transaction
+    await connection.confirmTransaction({
+      signature,
+      blockhash,
+      lastValidBlockHeight
+    }, "confirmed");
+
+    console.log("✅ Transaction signature:", signature);
+    return signature;
   } catch (error: any) {
     console.error("Failed to submit private trade:", error);
-    
-    // Check if it's an AccountNotInitialized error for comp_def_account
-    if (error.message?.includes("AccountNotInitialized") || 
-        error.message?.includes("comp_def_account")) {
+    console.error("Error details:", JSON.stringify(error, null, 2));
+
+    // Handle specific error cases with helpful messages
+    const errorMsg = error.message || error.toString() || "";
+
+    if (errorMsg.includes("AccountNotInitialized") || errorMsg.includes("comp_def_account")) {
+      // Try to initialize the computation definition automatically
+      console.log("⚠️ Computation definition not initialized. Attempting to initialize...");
+      try {
+        const initResult = await initializeComputationDefinition(
+          program,
+          connection,
+          userPublicKey,
+          "private_trade"
+        );
+        if (initResult.initialized) {
+          console.log("✅ Computation definition initialized. Please try submitting the trade again.");
+          throw new Error(
+            "Computation definition was just initialized. Please try submitting your trade again."
+          );
+        }
+      } catch (initError: any) {
+        console.error("Failed to initialize computation definition:", initError);
+        throw new Error(
+          `Computation definition account not initialized. ` +
+          `Please run the initialization script or use initializeComputationDefinition() in the console. ` +
+          `Error: ${initError.message || initError}`
+        );
+      }
+    }
+
+    if (errorMsg.includes("Privacy system") || errorMsg.includes("MXE") || errorMsg.includes("encryption")) {
       throw new Error(
-        `Computation definition account not initialized. ` +
-        `The system attempted to initialize it automatically but failed. ` +
-        `Please try again, or manually initialize using initializeComputationDefinition(). ` +
-        `Error: ${error.message || error}`
+        "Privacy system (MXE) is not fully initialized. " +
+        "Please run: arcium finalize-mxe-keys <program_id> --cluster-offset 1078779259"
       );
     }
-    
+
+    // Generic error
     throw new Error(
-      error.message ||
-        "Failed to submit private trade. Please check the console for details."
+      errorMsg ||
+      "Failed to submit private trade. Please check the console for details."
     );
   }
 }
@@ -246,14 +308,19 @@ export async function initializeComputationDefinition(
   compDefType: "private_trade" | "batch_clear" | "resolve_market"
 ): Promise<{ initialized: boolean; tx?: string }> {
   const programId = program.programId;
-  const arciumProgramId = new PublicKey('BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6');
-  
-  // Derive the computation definition account
-  const compDefAccount = getCompDefAccAddress(
-    programId,
-    Buffer.from(getCompDefAccOffset(compDefType)).readUInt32LE()
+  const arciumProgramId = new PublicKey('Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp');
+
+  // Manually derive comp def PDA using correct seeds (SDK derives wrong address)
+  // Seeds: [b"ComputationDefinitionAccount", callback_program_id, offset_bytes]
+  const offsetBytes = Buffer.alloc(4);
+  offsetBytes.writeUInt32LE(Buffer.from(getCompDefAccOffset(compDefType)).readUInt32LE());
+  const [compDefAccount] = PublicKey.findProgramAddressSync(
+    [Buffer.from('ComputationDefinitionAccount'), programId.toBuffer(), offsetBytes],
+    arciumProgramId
   );
-  const mxeAccount = getMXEAccAddress(programId);
+
+  // Use correct hardcoded MXE account (SDK derives wrong address)
+  const mxeAccount = MXE_ACCOUNT;
 
   // Check if already initialized
   const accountInfo = await connection.getAccountInfo(compDefAccount);

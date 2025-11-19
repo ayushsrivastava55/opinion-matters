@@ -17,11 +17,11 @@ default = []
 idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
-anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
-anchor-spl = "0.31.1"
-arcium-client = { version = "0.3.0", default-features = false }
-arcium-macros = { version = "0.3.0" }
-arcium-anchor = { version = "0.3.0" }
+anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
+anchor-spl = "0.32.1"
+arcium-client = { version = "0.4.0", default-features = false }
+arcium-macros = { version = "0.4.0" }
+arcium-anchor = { version = "0.4.0" }
 
 [dev-dependencies]
 # Commented out due to yanked dependency issue

@@ -1,0 +1,293 @@
+Skip to main content
+[Arcium Docs home page](https://docs.arcium.com/)
+- [arcium.com](https://www.arcium.com/)
+- [X @arcium](https://x.com/arcium)
+[arcium.com](https://www.arcium.com/)
+[X @arcium](https://x.com/arcium)
+[Documentation](https://docs.arcium.com/)
+[Developers](https://docs.arcium.com/developers)
+- [Intro to Arcium](https://docs.arcium.com/developers)
+- InstallationOverview[Arcup Version Manager](https://docs.arcium.com/developers/installation/arcup)
+- [Overview](https://docs.arcium.com/developers/installation)
+- [Arcup Version Manager](https://docs.arcium.com/developers/installation/arcup)
+- [Hello World with Arcium](https://docs.arcium.com/developers/hello-world)
+- [Computation Lifecycle](https://docs.arcium.com/developers/computation-lifecycle)
+- Encryption
+- Arcis
+- Invoking a Computation from your Solana program
+- JavaScript Client
+- [Deployment](https://docs.arcium.com/developers/deployment)
+- [Callback Server](https://docs.arcium.com/developers/callback-server)
+- [Current Limitations](https://docs.arcium.com/developers/limitations)
+- Migration Guide
+- [Setup a Testnet Node](https://docs.arcium.com/developers/node-setup)
+[Intro to Arcium](https://docs.arcium.com/developers)
+- [Overview](https://docs.arcium.com/developers/installation)
+- [Arcup Version Manager](https://docs.arcium.com/developers/installation/arcup)
+[Overview](https://docs.arcium.com/developers/installation)
+[Arcup Version Manager](https://docs.arcium.com/developers/installation/arcup)
+[Hello World with Arcium](https://docs.arcium.com/developers/hello-world)
+[Computation Lifecycle](https://docs.arcium.com/developers/computation-lifecycle)
+[Deployment](https://docs.arcium.com/developers/deployment)
+[Callback Server](https://docs.arcium.com/developers/callback-server)
+[Current Limitations](https://docs.arcium.com/developers/limitations)
+[Setup a Testnet Node](https://docs.arcium.com/developers/node-setup)
+- Quick Install (Recommended)
+- Prerequisites
+- Manual Installation
+- Issues
+- Platform-Specific Issues
+- Incorrect $PATH
+Quick Install (Recommended)
+Prerequisites
+Manual Installation
+Issues
+Platform-Specific Issues
+Incorrect $PATH
+
+## ​Quick Install (Recommended)
+
+​
+
+```
+curl --proto '=https' --tlsv1.2 -sSfL https://install.arcium.com/ | bash
+```
+
+
+```
+curl --proto '=https' --tlsv1.2 -sSfL https://install.arcium.com/ | bash
+```
+
+
+```
+arcup
+```
+
+[here](https://docs.arcium.com/developers/installation/arcup)
+- Check for all required dependencies
+- Install Linux build dependencies automatically (if needed)
+- Download and install arcup for your platform
+- Install the latest Arcium CLI (command-line interface for interacting with the Arcium network and managing computations)
+- Install the Arx Node (the core node software that performs encrypted computations in the network)
+
+```
+arcup
+```
+
+### ​Prerequisites
+
+​
+- Rust: Install from [here](https://www.rust-lang.org/tools/install)
+- Solana CLI 2.3.0: Install from [here](https://docs.solana.com/cli/install-solana-cli-tools), then run solana-keygen new
+- Yarn: Install from [here](https://yarnpkg.com/getting-started/install)
+- Anchor 0.32.1: Install from [here](https://www.anchor-lang.com/docs/installation)
+- Docker & Docker Compose: Install Docker from [here](https://docs.docker.com/compose/install/) and Docker Compose from here
+[here](https://www.rust-lang.org/tools/install)
+[here](https://docs.solana.com/cli/install-solana-cli-tools)
+
+```
+solana-keygen new
+```
+
+[here](https://yarnpkg.com/getting-started/install)
+[here](https://www.anchor-lang.com/docs/installation)
+[here](https://docs.docker.com/engine/install/)
+[here](https://docs.docker.com/compose/install/)
+
+## ​Manual Installation
+​
+[here](https://docs.arcium.com/developers/installation/arcup)
+
+```
+arcup
+```
+
+- aarch64_linux
+- x86_64_linux
+- aarch64_macos
+- x86_64_macos
+
+```
+aarch64_linux
+```
+
+
+```
+x86_64_linux
+```
+
+
+```
+aarch64_macos
+```
+
+
+```
+x86_64_macos
+```
+
+
+```
+<YOUR_TARGET>
+```
+
+
+```
+TARGET=aarch64_linux && curl "https://bin.arcium.com/download/arcup_${TARGET}_0.4.0" -o ~/.cargo/bin/arcup && chmod +x ~/.cargo/bin/arcup
+```
+
+
+```
+TARGET=aarch64_linux && curl "https://bin.arcium.com/download/arcup_${TARGET}_0.4.0" -o ~/.cargo/bin/arcup && chmod +x ~/.cargo/bin/arcup
+```
+
+
+```
+arcup
+```
+
+
+```
+arcup install
+```
+
+
+```
+arcup install
+```
+
+
+```
+arcium --version
+```
+
+
+```
+arcium --version
+```
+
+## ​Issues
+​
+
+### ​Platform-Specific Issues
+​
+
+```
+sudo apt-get update && sudo apt-get upgrade && sudo apt-get install -y pkg-config build-essential libudev-dev libssl-dev
+```
+
+
+```
+sudo apt-get update && sudo apt-get upgrade && sudo apt-get install -y pkg-config build-essential libudev-dev libssl-dev
+```
+
+### ​Incorrect $PATH
+​
+
+```
+$PATH
+```
+
+
+```
+arcup
+```
+
+
+```
+arcium
+```
+
+
+```
+~/.cargo/bin
+```
+
+
+```
+PATH
+```
+
+
+```
+PATH
+```
+
+
+```
+which arcium
+```
+
+
+```
+which arcium
+```
+
+
+```
+/home/user/.cargo/bin/arcium
+```
+
+
+```
+/home/user/.cargo/bin/arcium
+```
+
+
+```
+which arcium
+```
+
+- 
+Bash/Zsh: Add to ~/.bashrc or ~/.zshrc:
+CopyAsk AIexport PATH="$HOME/.cargo/bin:$PATH"
+
+
+- 
+Fish: Add to ~/.config/fish/config.fish:
+CopyAsk AIset -gx PATH $HOME/.cargo/bin $PATH
+
+
+
+```
+~/.bashrc
+```
+
+
+```
+~/.zshrc
+```
+
+
+```
+export PATH="$HOME/.cargo/bin:$PATH"
+```
+
+
+```
+export PATH="$HOME/.cargo/bin:$PATH"
+```
+
+
+```
+~/.config/fish/config.fish
+```
+
+
+```
+set -gx PATH $HOME/.cargo/bin $PATH
+```
+
+
+```
+set -gx PATH $HOME/.cargo/bin $PATH
+```
+
+
+```
+source ~/.bashrc
+```
+
+[Intro to Arcium](https://docs.arcium.com/developers)
+[Arcup Version Manager](https://docs.arcium.com/developers/installation/arcup)
+[Powered by Mintlify](https://www.mintlify.com?utm_campaign=poweredBy&utm_medium=referral&utm_source=arcium)

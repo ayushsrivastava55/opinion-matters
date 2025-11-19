@@ -28,9 +28,31 @@ async function ensureFunds(connection: Connection, pubkey: PublicKey) {
 
 async function loadProgram(connection: Connection, provider: AnchorProvider): Promise<Program> {
   // Prefer local IDL from target/idl
-  const idlPath = resolve(process.cwd(), '../target/idl/private_markets.json')
-  const raw = await fs.readFile(idlPath, 'utf8')
-  const idl = JSON.parse(raw) as Idl
+  const tryPaths = [
+    resolve(process.cwd(), 'target/idl/private_markets.json'),
+    resolve(process.cwd(), 'app/src/idl/private_markets.json'),
+    resolve(process.cwd(), '../target/idl/private_markets.json'),
+    resolve(process.cwd(), 'src/idl/private_markets.json'),
+  ]
+
+  let idl: Idl | null = null
+
+  for (const p of tryPaths) {
+    try {
+      const raw = await fs.readFile(p, 'utf8')
+      idl = JSON.parse(raw) as Idl
+      break
+    } catch (_) {
+      // continue searching other paths
+    }
+  }
+
+  if (!idl) {
+    throw new Error(
+      'Could not resolve IDL for private_markets program. Ensure the program is deployed (IDL on-chain) or that target/idl or src/idl contains private_markets.json.',
+    )
+  }
+
   return new Program(idl, provider)
 }
 

@@ -29,7 +29,7 @@ const fn comp_def_offset(name: &str) -> u32 {
     }
 }
 
-declare_id!("AjSL49GvLcfvarTXBcTX1fk9WqxH6LFVLpWnh8bgGtnK");
+declare_id!("DkZ8hXcjyoYTWUDD4VZ35PXP2HHA6bF8XRmSQXoqrprW");
 
 // Arcium macros expect an ErrorCode enum with ClusterNotSet at crate root
 // This must be public and at crate level for derive_cluster_pda!() macro
@@ -225,14 +225,14 @@ pub struct SubmitAttestation<'info> {
             ResolutionState::Active | ResolutionState::AwaitingAttestation
         ) @ MarketError::MarketAlreadyResolved
     )]
-    pub market: Account<'info, Market>,
+    pub market: Box<Account<'info, Market>>,
     #[account(
         mut,
         seeds = [RESOLVER_SEED, market.key().as_ref(), authority.key().as_ref()],
         bump = resolver.bump,
         constraint = resolver.market == market.key() @ MarketError::Unauthorized,
     )]
-    pub resolver: Account<'info, Resolver>,
+    pub resolver: Box<Account<'info, Resolver>>,
     pub authority: Signer<'info>,
 }
 
@@ -464,17 +464,17 @@ pub mod private_markets {
     use super::*;
 
     pub fn init_private_trade_comp_def(ctx: Context<InitPrivateTradeCompDef>) -> Result<()> {
-        init_comp_def(ctx.accounts, true, 0, None, None)?;
+        init_comp_def(ctx.accounts, 0, None, None)?;
         Ok(())
     }
 
     pub fn init_batch_clear_comp_def(ctx: Context<InitBatchClearCompDef>) -> Result<()> {
-        init_comp_def(ctx.accounts, true, 0, None, None)?;
+        init_comp_def(ctx.accounts, 0, None, None)?;
         Ok(())
     }
 
     pub fn init_resolve_market_comp_def(ctx: Context<InitResolveMarketCompDef>) -> Result<()> {
-        init_comp_def(ctx.accounts, true, 0, None, None)?;
+        init_comp_def(ctx.accounts, 0, None, None)?;
         Ok(())
     }
 

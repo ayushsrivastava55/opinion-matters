@@ -61,40 +61,77 @@ export async function encryptTradeOrder(
   const { privateKey, publicKey } = generateKeypair();
 
   // 2. Get MXE public key (per Arcium docs pattern)
-  const mxePublicKey = await getMXEPublicKey(provider, programId);
-  
-  if (!mxePublicKey || !(mxePublicKey instanceof Uint8Array) || mxePublicKey.length !== 32) {
-    throw new Error(
-      "Unable to encrypt your trade. The privacy infrastructure is not responding correctly. " +
-      "Please try again or contact support."
-    );
-  }
+  // Note: MXE must be initialized with a valid x25519 public key for encryption to work
+  // IMPORTANT: Use correct hardcoded MXE account because SDK getMXEAccAddress() derives wrong address
+  const correctMxeAccount = new PublicKey("34zXR49QSmNeuoH8LmoKgCJQo7vfATD57iD6Ubo2f5Pz");
+  let mxePublicKey: Uint8Array;
+  let mxeKeyValid = false;
 
-  // Check if key is all zeros (invalid)
-  const isAllZeros = mxePublicKey.every(byte => byte === 0);
-  if (isAllZeros) {
-    throw new Error(
-      "Privacy system is not fully initialized. Please try again in a few moments. " +
-      "If this issue persists, contact support."
-    );
-  }
+  try {
+    // Manually fetch MXE account data instead of using SDK helper
+    const mxeAccountInfo = await provider.connection.getAccountInfo(correctMxeAccount);
+    if (!mxeAccountInfo) {
+      throw new Error(`Account does not exist or has no data ${correctMxeAccount.toBase58()}`);
+    }
 
-  console.log('Encryption keys:', {
-    privateKeyOk: privateKey.length === 32,
-    publicKeyOk: publicKey.length === 32,
-    mxeKeyOk: mxePublicKey.length === 32
-  });
+    // MXE public key is stored at offset 0-31 in the account data (32 bytes x25519 public key)
+    const fetchedKey = mxeAccountInfo.data.slice(0, 32);
+
+    if (!fetchedKey || !(fetchedKey instanceof Uint8Array) || fetchedKey.length !== 32) {
+      console.warn("⚠️ MXE public key has invalid format");
+      mxePublicKey = new Uint8Array(32);
+    } else {
+      // Check if key is all zeros (not initialized)
+      const isAllZeros = fetchedKey.every(byte => byte === 0);
+      if (isAllZeros) {
+        console.warn("⚠️ MXE public key is all zeros - MXE account not initialized with encryption key");
+        console.warn("   To initialize: Run `arcium mxe-init` or initialize via program");
+        mxePublicKey = new Uint8Array(32);
+      } else {
+        mxePublicKey = fetchedKey;
+        mxeKeyValid = true;
+      }
+    }
+  } catch (error: any) {
+    console.warn("⚠️ Failed to fetch MXE public key:", error.message);
+    mxePublicKey = new Uint8Array(32);
+  }
 
   // 3. Compute shared secret (ECDH)
   let sharedSecret: Uint8Array;
+
+  if (!mxeKeyValid) {
+    // MXE not properly initialized - FAIL IMMEDIATELY (no fallback)
+    console.error('❌ MXE public key is invalid (all zeros)');
+    console.error('   This means the Arcium cluster has no active ARX nodes.');
+    console.error('');
+    console.error('   To fix this, you have two options:');
+    console.error('');
+    console.error('   1. Use Arcium Localnet (recommended for testing):');
+    console.error('      $ arcium localnet');
+    console.error('      This starts local ARX nodes with proper MPC support.');
+    console.error('');
+    console.error('   2. Contact Arcium for devnet cluster access:');
+    console.error('      Discord: https://discord.gg/arcium');
+    console.error('      Request: Active devnet cluster with ARX nodes');
+    console.error('');
+    throw new Error(
+      'MXE not initialized with valid encryption keys. ' +
+      'Run "arcium localnet" for local testing or contact Arcium team for devnet cluster access. ' +
+      'See console for details.'
+    );
+  }
+
+  // MXE key is valid - use proper ECDH
   try {
     sharedSecret = x25519.getSharedSecret(privateKey, mxePublicKey);
+    console.log('✅ Using MPC-secure encryption with real Arcium cluster');
   } catch (error: any) {
-    // Log detailed info for debugging
-    console.error('x25519.getSharedSecret failed:', error.message);
-    console.error('Private key:', Buffer.from(privateKey).toString('hex').slice(0, 32) + '...');
-    console.error('MXE pub key:', Buffer.from(mxePublicKey).toString('hex').slice(0, 32) + '...');
-    throw new Error('Encryption key exchange failed. Please try again or contact support.');
+    console.error('❌ x25519 key exchange failed:', error.message);
+    throw new Error(
+      'Encryption key exchange failed. MXE public key may be corrupted. ' +
+      'Please reinitialize MXE account or contact Arcium support.'
+    );
   }
 
   // 4. Create cipher with shared secret

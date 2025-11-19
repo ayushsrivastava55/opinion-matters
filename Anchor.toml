@@ -9,7 +9,7 @@ skip-lint = false
 private_markets = "G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro"
 
 [programs.devnet]
-private_markets = "AjSL49GvLcfvarTXBcTX1fk9WqxH6LFVLpWnh8bgGtnK"
+private_markets = "DkZ8hXcjyoYTWUDD4VZ35PXP2HHA6bF8XRmSQXoqrprW"
 
 [registry]
 url = "https://api.apr.dev"

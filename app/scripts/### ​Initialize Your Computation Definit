@@ -1,0 +1,68 @@
+### ​Initialize Your Computation Definitions
+​
+
+```
+const arciumEnv = getArciumEnv(); // Later in your transaction... .accountsPartial({ clusterAccount: arciumEnv.arciumClusterPubkey, // ... other accounts })
+```
+
+
+```
+const arciumEnv = getArciumEnv(); // Later in your transaction... .accountsPartial({ clusterAccount: arciumEnv.arciumClusterPubkey, // ... other accounts })
+```
+
+
+```
+// Use the cluster offset from your deployment const clusterAccount = getClusterAccAddress(cluster_offset); // e.g., getClusterAccAddress(1078779259) // In your transaction... .accountsPartial({ clusterAccount: clusterAccount, // ... other accounts })
+```
+
+
+```
+// Use the cluster offset from your deployment const clusterAccount = getClusterAccAddress(cluster_offset); // e.g., getClusterAccAddress(1078779259) // In your transaction... .accountsPartial({ clusterAccount: clusterAccount, // ... other accounts })
+```
+
+
+```
+cluster_offset
+```
+
+
+```
+// Now with the correct cluster configured await initAddTogetherCompDef(program, owner, false);
+```
+
+
+```
+// Now with the correct cluster configured await initAddTogetherCompDef(program, owner, false);
+```
+
+### ​Verify Everything’s Working
+​
+
+```
+solana program show <your-program-id> --url <your-rpc-url>
+```
+
+
+```
+solana program show <your-program-id> --url <your-rpc-url>
+```
+
+
+```
+// Update your test setup to use devnet when needed const useDevnet = true; // Set to false for local testing if (useDevnet) { // Devnet configuration const connection = new anchor.web3.Connection( "https://api.devnet.solana.com", // or your preferred RPC "confirmed" ); const wallet = new anchor.Wallet(owner); const provider = new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed", }); const program = new anchor.Program<YourProgram>(IDL as anchor.Idl, provider); const clusterAccount = getClusterAccAddress(1078779259); // Use your cluster offset } else { // Local configuration anchor.setProvider(anchor.AnchorProvider.env()); const provider = anchor.getProvider() as anchor.AnchorProvider; const program = anchor.workspace.YourProgram as Program<YourProgram>; const arciumEnv = getArciumEnv(); const clusterAccount = arciumEnv.arciumClusterPubkey; }
+```
+
+
+```
+// Update your test setup to use devnet when needed const useDevnet = true; // Set to false for local testing if (useDevnet) { // Devnet configuration const connection = new anchor.web3.Connection( "https://api.devnet.solana.com", // or your preferred RPC "confirmed" ); const wallet = new anchor.Wallet(owner); const provider = new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed", }); const program = new anchor.Program<YourProgram>(IDL as anchor.Idl, provider); const clusterAccount = getClusterAccAddress(1078779259); // Use your cluster offset } else { // Local configuration anchor.setProvider(anchor.AnchorProvider.env()); const provider = anchor.getProvider() as anchor.AnchorProvider; const program = anchor.workspace.YourProgram as Program<YourProgram>; const arciumEnv = getArciumEnv(); const clusterAccount = arciumEnv.arciumClusterPubkey; }
+```
+
+
+```
+arcium test
+```
+
+
+```
+arcium test
+```

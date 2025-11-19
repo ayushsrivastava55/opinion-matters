@@ -1,10 +1,10 @@
-use anchor_lang::prelude::*;
-use arcium_anchor::prelude::*;
-use arcium_client::idl::arcium::types::CallbackAccount;
 use crate::constants::*;
 use crate::error::MarketError;
 use crate::state::*;
-use crate::{SubmitAttestation, ResolveMarketCallback, AttestationSubmitted}; // Import from crate root
+use crate::{AttestationSubmitted, ResolveMarketCallback, SubmitAttestation};
+use anchor_lang::prelude::*;
+use arcium_anchor::prelude::*;
+use arcium_client::idl::arcium::types::CallbackAccount; // Import from crate root
 
 // Handler function - account struct is defined in lib.rs for #[arcium_program] macro
 
@@ -14,13 +14,13 @@ pub fn handler(
     attestation: [u8; 32],
 ) -> Result<()> {
     let clock = Clock::get()?;
-    
+
     // Get keys and data before mutable borrows
     let market_key = ctx.accounts.market.key();
     let resolver_quorum = ctx.accounts.market.resolver_quorum;
     let resolver_key = ctx.accounts.resolver.key();
     let resolver_count = ctx.accounts.resolver.count;
-    
+
     let market = &mut ctx.accounts.market;
     let resolver = &mut ctx.accounts.resolver;
 
@@ -47,7 +47,7 @@ pub fn handler(
         // Drop mutable borrows before calling queue_computation
         drop(market);
         drop(resolver);
-        
+
         // Queue the resolution computation to Arcium
         let args = vec![
             Argument::EncryptedU32(attestation),
@@ -63,12 +63,11 @@ pub fn handler(
             computation_offset,
             args,
             None,
-            vec![ResolveMarketCallback::callback_ix(&[
-                CallbackAccount {
-                    pubkey: market_key,
-                    is_writable: true,
-                }
-            ])],
+            vec![ResolveMarketCallback::callback_ix(&[CallbackAccount {
+                pubkey: market_key,
+                is_writable: true,
+            }])],
+            1,
         )?;
 
         msg!(

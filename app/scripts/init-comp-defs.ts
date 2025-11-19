@@ -28,10 +28,10 @@ async function loadProgram(connection: Connection, provider: AnchorProvider): Pr
     resolve(process.cwd(), 'src/idl/private_markets.json'),
     resolve(process.cwd(), 'app/src/idl/private_markets.json'),
   ]
-  
+
   // Correct program ID for the deployed program
-  const PROGRAM_ID = new PublicKey('AjSL49GvLcfvarTXBcTX1fk9WqxH6LFVLpWnh8bgGtnK')
-  
+  const PROGRAM_ID = new PublicKey('DkZ8hXcjyoYTWUDD4VZ35PXP2HHA6bF8XRmSQXoqrprW')
+
   for (const idlPath of possiblePaths) {
     try {
       const raw = await fs.readFile(idlPath, 'utf8')
@@ -44,7 +44,7 @@ async function loadProgram(connection: Connection, provider: AnchorProvider): Pr
       continue
     }
   }
-  
+
   throw new Error(`Could not find IDL file. Tried: ${possiblePaths.join(', ')}`)
 }
 
@@ -76,14 +76,28 @@ async function main() {
 
   const program = await loadProgram(connection, provider)
   const programId = program.programId
-  const arciumProgramId = new PublicKey('BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6')
+  const arciumProgramId = new PublicKey('Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp')
 
-  const mxeAccount = getMXEAccAddress(programId)
-  const CLUSTER_OFFSET = 1078779259  // From devnet MXE initialization
+  // Use the MXE account we just initialized
+  const mxeAccount = new PublicKey('34zXR49QSmNeuoH8LmoKgCJQo7vfATD57iD6Ubo2f5Pz')
+  const CLUSTER_OFFSET = 1  // From devnet MXE initialization
   const clusterAccount = getClusterAccAddress(CLUSTER_OFFSET)
-  const privateTradeCompDef = getCompDefAccAddress(programId, getOffsetU32('private_trade'))
-  const batchClearCompDef = getCompDefAccAddress(programId, getOffsetU32('batch_clear'))
-  const resolveMarketCompDef = getCompDefAccAddress(programId, getOffsetU32('resolve_market'))
+
+  // Manually derive comp def PDAs using correct seeds (SDK derives wrong addresses)
+  // Seeds: [b"ComputationDefinitionAccount", callback_program_id, offset_bytes]
+  const deriveCompDefPDA = (name: 'private_trade' | 'batch_clear' | 'resolve_market') => {
+    const offsetBytes = Buffer.alloc(4)
+    offsetBytes.writeUInt32LE(getOffsetU32(name))
+    const [pda] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from('ComputationDefinitionAccount'), programId.toBuffer(), offsetBytes],
+      arciumProgramId
+    )
+    return pda
+  }
+
+  const privateTradeCompDef = deriveCompDefPDA('private_trade')
+  const batchClearCompDef = deriveCompDefPDA('batch_clear')
+  const resolveMarketCompDef = deriveCompDefPDA('resolve_market')
 
   console.log('Program ID:', programId.toBase58())
   console.log('MXE Account:', mxeAccount.toBase58())
@@ -92,7 +106,7 @@ async function main() {
   console.log('CompDef (private_trade):', privateTradeCompDef.toBase58())
   console.log('CompDef (batch_clear):', batchClearCompDef.toBase58())
   console.log('CompDef (resolve_market):', resolveMarketCompDef.toBase58())
-  
+
   console.log('\n⚠️  Note: If you get "InvalidAuthority" errors, ensure:')
   console.log('   1. The program has been rebuilt with latest changes (anchor build)')
   console.log('   2. The program has been redeployed')
@@ -152,7 +166,7 @@ async function main() {
     } catch (e) {
       // Account doesn't exist, proceed
     }
-    
+
     try {
       console.log(`🔧 Initializing ${name}...`)
       const tx = await initMethod()

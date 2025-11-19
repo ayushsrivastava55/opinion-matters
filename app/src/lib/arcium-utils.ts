@@ -14,7 +14,7 @@ import { PROGRAM_ID as CONFIG_PROGRAM_ID } from "../config/program";
 export const PROGRAM_ID = CONFIG_PROGRAM_ID;
 
 export const ARCIUM_PROGRAM_ID = new PublicKey(
-  "Arc1umF1yAXzJJaQheFMv3dJ34P6GYmr3yFetbGWJX6"
+  "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
 );
 
 // Arcium MXE Account - Derived dynamically using Arcium SDK
@@ -45,7 +45,7 @@ export const SEEDS = {
   NO_MINT: "no_mint",
   RESOLVER: "resolver",
   BATCH: "batch",
-  SIGN_PDA: "sign_pda",
+  SIGN_PDA: "SignerAccount", // Must match Arcium SDK SIGN_PDA_SEED
 } as const;
 
 /**

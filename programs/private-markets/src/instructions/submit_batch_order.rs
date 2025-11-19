@@ -1,10 +1,10 @@
-use anchor_lang::prelude::*;
-use arcium_anchor::prelude::*;
-use arcium_client::idl::arcium::types::CallbackAccount;
 use crate::constants::*;
 use crate::error::MarketError;
 use crate::state::*;
-use crate::{SubmitBatchOrder, BatchClearCallback}; // Import from crate root
+use crate::{BatchClearCallback, SubmitBatchOrder};
+use anchor_lang::prelude::*;
+use arcium_anchor::prelude::*;
+use arcium_client::idl::arcium::types::CallbackAccount; // Import from crate root
 
 // Handler function - account struct is defined in lib.rs for #[arcium_program] macro
 
@@ -14,10 +14,10 @@ pub fn handler(
     batch_orders: Vec<BatchOrderData>,
 ) -> Result<()> {
     let clock = Clock::get()?;
-    
+
     // Get key before mutable borrow
     let market_key = ctx.accounts.market.key();
-    
+
     let market = &mut ctx.accounts.market;
 
     // Check market hasn't ended
@@ -56,18 +56,14 @@ pub fn handler(
         computation_offset,
         args,
         None,
-        vec![BatchClearCallback::callback_ix(&[
-            CallbackAccount {
-                pubkey: market_key,
-                is_writable: true,
-            }
-        ])],
+        vec![BatchClearCallback::callback_ix(&[CallbackAccount {
+            pubkey: market_key,
+            is_writable: true,
+        }])],
+        1,
     )?;
 
-    msg!(
-        "Batch orders queued for market {}",
-        market_key
-    );
+    msg!("Batch orders queued for market {}", market_key);
 
     Ok(())
 }

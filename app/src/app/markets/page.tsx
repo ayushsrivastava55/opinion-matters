@@ -323,9 +323,39 @@ export default function MarketsPage() {
 
       // Fetch vault token account to learn the collateral mint
       const vaultInfo = await connection.getParsedAccountInfo(collateralVault)
-      const parsed = (vaultInfo.value?.data as any)?.parsed
-      const mintStr: string | undefined = parsed?.info?.mint
-      if (!mintStr) throw new Error('Unable to resolve collateral mint')
+      if (!vaultInfo.value) {
+        throw new Error(`Collateral vault account not found: ${collateralVault.toBase58()}`)
+      }
+
+      const parsed = (vaultInfo.value.data as any)?.parsed
+      if (!parsed || !parsed.info || !parsed.info.mint) {
+        // Vault exists but isn't a token account or can't be parsed
+        // Try to get it from the market account directly
+        const collateralMint = marketAccount.collateralMint as PublicKey
+        console.log('Using collateral mint from market account:', collateralMint.toBase58())
+        const mintPk = collateralMint
+
+        // Continue with the mint from market account
+        const userAta = await ensureAta(mintPk)
+        const mint = await getMint(connection, mintPk)
+        const decimals = mint.decimals ?? 6
+        const scaled = new BN(Math.floor(Number(tradeAmount) * 10 ** decimals))
+
+        await program.methods
+          .depositCollateral(scaled)
+          .accounts({
+            market: marketPk,
+            collateralVault: collateralVault,
+            userCollateral: userAta,
+            user: wallet.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .rpc()
+
+        return
+      }
+
+      const mintStr: string = parsed.info.mint
       const mintPk = new PublicKey(mintStr)
 
       // Ensure user ATA exists

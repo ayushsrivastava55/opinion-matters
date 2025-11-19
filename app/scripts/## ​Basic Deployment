@@ -1,0 +1,17 @@
+## ​Basic Deployment
+
+​
+
+```
+arcium deploy
+```
+
+
+```
+arcium deploy --cluster-offset <cluster-offset> --keypair-path <path-to-your-keypair> --rpc-url <your-rpc-url>
+```
+
+
+```
+arcium deploy --cluster-offset <cluster-offset> --keypair-path <path-to-your-keypair> --rpc-url <your-rpc-url>
+```

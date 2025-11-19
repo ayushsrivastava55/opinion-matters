@@ -1,10 +1,10 @@
-use anchor_lang::prelude::*;
-use arcium_client::idl::arcium::types::CallbackAccount;
-use arcium_anchor::prelude::*;
 use crate::constants::*;
 use crate::error::MarketError;
 use crate::state::*;
-use crate::{SubmitPrivateTrade, PrivateTradeCallback, PrivateTradeQueued}; // Import from crate root
+use crate::{PrivateTradeCallback, PrivateTradeQueued, SubmitPrivateTrade};
+use anchor_lang::prelude::*;
+use arcium_anchor::prelude::*;
+use arcium_client::idl::arcium::types::CallbackAccount; // Import from crate root
 
 // Handler function - account struct is defined in lib.rs for #[arcium_program] macro
 
@@ -48,13 +48,12 @@ pub fn handler(
         ctx.accounts,
         computation_offset,
         args,
-        None,  // No additional callback accounts needed
-        vec![PrivateTradeCallback::callback_ix(&[
-            CallbackAccount {
-                pubkey: ctx.accounts.market.key(),
-                is_writable: true,
-            }
-        ])],  // Callback instruction with market account
+        None, // No additional callback accounts needed
+        vec![PrivateTradeCallback::callback_ix(&[CallbackAccount {
+            pubkey: ctx.accounts.market.key(),
+            is_writable: true,
+        }])], // Callback instruction with market account
+        1,
     )?;
 
     msg!(
