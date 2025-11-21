@@ -96,10 +96,10 @@ describe("Deployment Verification - Devnet", () => {
       const tx = await program.methods
         .createMarket(
           "Will BTC reach $100k by EOY?",
-          new anchor.BN(currentTime + 86400), // 24 hours from now
-          new anchor.BN(3600), // 1 hour batch interval
-          3, // 3 resolvers needed
-          new anchor.BN(100_000_000), // 100 USDC minimum stake (6 decimals)
+          new anchor.BN(currentTime + 86400), // end_time: 24 hours from now
+          100, // fee_bps: 1%
+          new anchor.BN(3600), // batch_interval: 1 hour
+          3, // resolver_quorum: 3 resolvers needed
         )
         .accounts({
           market: marketPda,

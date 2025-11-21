@@ -40,6 +40,8 @@ arcium-deploy.log
 .anchor/
 target/
 test-ledger/
+.local-ledger/
+app/test-ledger/
 .solana/
 deploy/
 keys/
@@ -56,6 +58,18 @@ computation_cache/
 **/*keypair*.json
 *.pem
 !app/.env.example
+
+# Solana address format keypair files (base58 addresses like FEEwuc...json)
+[A-HJ-NP-Za-km-z1-9]*.json
+
+# Root level dev/debug scripts
+add-markets-to-db.ts
+check-*.ts
+create-market-*.ts
+derive-mxe.ts
+
+# Temporary markdown files
+*.md
 
 # Vercel
 .vercel

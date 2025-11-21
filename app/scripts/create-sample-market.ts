@@ -61,7 +61,7 @@ async function main() {
   const connection = new Connection(rpcUrl, 'confirmed')
   const authority = await getWalletFromDefault()
 
-  const wallet = {
+  const wallet: any = {
     publicKey: authority.publicKey,
     async signTransaction<T extends anchor.web3.Transaction>(tx: T): Promise<T> {
       tx.partialSign(authority)
@@ -144,4 +144,3 @@ main().catch((e) => {
   console.error('Failed to create sample market', e)
   process.exit(1)
 })
-

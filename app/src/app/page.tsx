@@ -19,6 +19,7 @@ import { MagicCard } from '@/components/magicui/magic-card'
 import { ShinyButton } from '@/components/magicui/shiny-button'
 import { NoSSR } from '@/components/no-ssr'
 import { WalletButton } from '@/components/wallet-button'
+import { HeaderStatus } from '@/components/header-status'
 import Link from 'next/link'
 const heroStats = [
   {
@@ -111,6 +112,7 @@ export default function Home() {
                 </a>
               </div>
               <div className="flex items-center gap-3">
+                <HeaderStatus />
                 <Link href="/markets">
                   <ShinyButton type="button" className="hidden md:inline-flex">
                     <BarChart3 className="h-4 w-4" />

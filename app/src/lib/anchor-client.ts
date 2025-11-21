@@ -16,21 +16,16 @@ export async function getAnchorProgram(
   const programId = PROGRAM_ID
   const provider = new AnchorProvider(connection, wallet as any, {})
 
+  // Always use local IDL to avoid DeclaredProgramIdMismatch errors
+  // The on-chain IDL may have stale program ID from previous deployments
   let idl: Idl | null = null
   try {
-    idl = await Program.fetchIdl(programId, provider)
-  } catch (e) {
-    console.warn('Failed to fetch IDL from chain, trying local fallback...', e)
-  }
-  
-  if (!idl) {
-    try {
-      const localIdlModule = await import('@/idl/private_markets.json')
-      idl = (localIdlModule as { default: Idl }).default || localIdlModule as any as Idl
-    } catch (localError) {
-      console.error('Failed to load local IDL', localError)
-      throw new Error('Unable to connect to the market system. Please try again later or contact support.')
-    }
+    const localIdlModule = await import('@/idl/private_markets.json')
+    idl = (localIdlModule as { default: Idl }).default || localIdlModule as any as Idl
+    console.log('✅ Using local IDL with program ID:', (idl as any)?.address)
+  } catch (localError) {
+    console.error('Failed to load local IDL', localError)
+    throw new Error('Unable to connect to the market system. Please try again later or contact support.')
   }
 
   // Ensure IDL has correct address (clone to avoid mutating original)

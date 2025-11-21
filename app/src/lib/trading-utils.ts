@@ -8,20 +8,28 @@ import {
 } from "./arcium-encryption-fixed";
 import {
   getMXEAccAddress,
-  getMempoolAccAddress,
-  getExecutingPoolAccAddress,
   getComputationAccAddress,
-  getCompDefAccAddress,
-  getCompDefAccOffset,
-  getClusterAccAddress,
+  getArciumProgAddress,
 } from "@arcium-hq/client";
 import {
   PROGRAM_ID,
   MXE_ACCOUNT,
+  ARCIUM_CLUSTER_OFFSET,
 } from "../config/program";
 import {
   deriveSignPda,
 } from "./arcium-utils";
+import {
+  getCorrectClusterAccount,
+  getCorrectClockAccount,
+  getCorrectSignAccount,
+  getCorrectMempoolAccount,
+  getCorrectExecutingPoolAccount,
+  getCorrectFeePoolAccount,
+  getCompDefAccount,
+  getComputationAccount,
+  getCorrectMXEAccount
+} from "./arcium-accounts-fixed";
 
 /**
  * Generate random bytes for computation offset
@@ -56,6 +64,7 @@ export async function submitPrivateTrade(
   const programId = program.programId;
 
   const encrypted = await encryptTradeOrder(provider, programId, orderPlaintext);
+  const arciumProgramId = getArciumProgAddress();
 
   // 2. Generate computation offset (8 random bytes)
   const computationOffsetBytes = generateRandomBytes(8);
@@ -63,40 +72,19 @@ export async function submitPrivateTrade(
 
   // 3. Derive all required Arcium accounts using SDK helpers with OUR program ID
   const [signPda] = deriveSignPda();
-  const mxeAccount = MXE_ACCOUNT;
-  const mempoolAccount = getMempoolAccAddress(programId);
-  const executingPool = getExecutingPoolAccAddress(programId);
-  const computationAccount = getComputationAccAddress(programId, computationOffset);
+  const mxeAccount = getCorrectMXEAccount();
+  const mempoolAccount = getCorrectMempoolAccount();
+  const executingPool = getCorrectExecutingPoolAccount();
+  const computationAccount = getComputationAccount(programId, computationOffset);
 
-  // Manually derive comp def PDA using correct seeds (SDK derives wrong address)
-  // Seeds: [b"ComputationDefinitionAccount", callback_program_id, offset_bytes]
-  const arciumProgramId = new PublicKey('Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp');
-  const offsetBytes = Buffer.alloc(4);
-  offsetBytes.writeUInt32LE(Buffer.from(getCompDefAccOffset("private_trade")).readUInt32LE());
-  const [compDefAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('ComputationDefinitionAccount'), programId.toBuffer(), offsetBytes],
-    arciumProgramId
-  );
+  const compDefAccount = getCompDefAccount(programId, "private_trade");
 
-  // Manually derive cluster PDA using correct seeds (SDK derives wrong address)
-  // Seeds: [b"Cluster", offset_bytes]
-  const CLUSTER_OFFSET = 1;
-  const clusterOffsetBytes = Buffer.alloc(4);
-  clusterOffsetBytes.writeUInt32LE(CLUSTER_OFFSET);
-  const [clusterAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('Cluster'), clusterOffsetBytes],
-    arciumProgramId
-  );
-
-  // Derive Arcium Clock PDA (NOT the Solana sysvar clock!)
-  // Seeds: [b"ClockAccount"] per Arcium SDK
-  const [clockAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('ClockAccount')],
-    arciumProgramId
-  );
+  const clusterAccount = getCorrectClusterAccount();
+  const clockAccount = getCorrectClockAccount();
 
   // 4. Convert pub_key to Array (client_pubkey expected as [u8; 32])
   const pubKeyArray = Array.from(encrypted.pub_key);
+  const nonceBn = new BN(Buffer.from(encrypted.nonce), "le");
 
   // Log account addresses for debugging
   console.log('🔍 Trade Submission Details:');
@@ -111,16 +99,18 @@ export async function submitPrivateTrade(
   // 5. Build and send transaction
   // Note: We let the transaction be built and sent to Phantom first
   // Then handle errors during execution. This allows Phantom popup to appear.
-  // Fixed addresses from IDL
-  const poolAccount = new PublicKey('7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3'); // Arcium pool account
+  const poolAccount = getCorrectFeePoolAccount();
+  console.log('  Pool Account (FeePool):', poolAccount.toBase58());
 
   try {
     // Build transaction instruction
     const ix = await program.methods
       .submitPrivateTrade(
         computationOffset,
-        // Encrypted order is a single [u8; 32] per IDL; use the commitment/ciphertext
         Array.from(encrypted.ciphertext_amount),
+        Array.from(encrypted.ciphertext_side),
+        Array.from(encrypted.ciphertext_max_price),
+        nonceBn,
         pubKeyArray
       )
       .accountsPartial({
@@ -153,20 +143,70 @@ export async function submitPrivateTrade(
     // Sign transaction with wallet
     const signedTx = await wallet.signTransaction(transaction);
 
-    // Send transaction directly with connection
-    const signature = await connection.sendRawTransaction(signedTx.serialize(), {
-      skipPreflight: true,
-      maxRetries: 3
-    });
+    // Blockchain-grade transaction submission with proper blockhash management
+    const submitTransaction = async (): Promise<string> => {
+      // Get fresh blockhash and calculate validity window
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
+      transaction.recentBlockhash = blockhash;
 
-    // Confirm transaction
-    await connection.confirmTransaction({
-      signature,
-      blockhash,
-      lastValidBlockHeight
-    }, "confirmed");
+      // Re-sign with fresh blockhash
+      const freshSignedTx = await wallet.signTransaction(transaction);
+
+      // Submit with proper RPC configuration
+      const signature = await connection.sendRawTransaction(freshSignedTx.serialize(), {
+        skipPreflight: false,
+        maxRetries: 0, // Handle retries manually for better control
+        preflightCommitment: "confirmed"
+      });
+
+      // Strategic confirmation with block height awareness
+      const confirmation = await connection.confirmTransaction({
+        signature,
+        lastValidBlockHeight,
+        blockhash
+      }, "confirmed");
+
+      return signature;
+    };
+
+    // Execute with proper error handling and retry logic
+    let signature: string = '';
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        signature = await submitTransaction();
+        break; // Success
+      } catch (error: any) {
+        attempts++;
+        
+        if (error.message?.includes("Blockhash not found") && attempts < maxAttempts) {
+          console.log(`🔄 Blockhash expired, retrying... (${attempts}/${maxAttempts})`);
+          // Wait for next slot for fresh blockhash
+          await new Promise(resolve => setTimeout(resolve, 400));
+          continue;
+        }
+        
+        if (error.message?.includes("Transaction too large")) {
+          throw new Error("Transaction too large, try reducing trade amount");
+        }
+        
+        if (error.message?.includes("insufficient funds")) {
+          throw new Error("Insufficient SOL for transaction fees");
+        }
+        
+        throw error; // Re-throw other errors
+      }
+    }
+
+    // Validate we got a signature
+    if (!signature) {
+      throw new Error("Failed to submit transaction after maximum attempts");
+    }
 
     console.log("✅ Transaction signature:", signature);
+    console.log("🔗 Explorer:", `https://explorer.solana.com/tx/${signature}?cluster=devnet`);
     return signature;
   } catch (error: any) {
     console.error("Failed to submit private trade:", error);
@@ -271,18 +311,22 @@ export async function checkComputationDefinitionsInitialized(
   batchClear: boolean;
   resolveMarket: boolean;
 }> {
-  const privateTradeCompDef = getCompDefAccAddress(
-    programId,
-    Buffer.from(getCompDefAccOffset("private_trade")).readUInt32LE()
-  );
-  const batchClearCompDef = getCompDefAccAddress(
-    programId,
-    Buffer.from(getCompDefAccOffset("batch_clear")).readUInt32LE()
-  );
-  const resolveMarketCompDef = getCompDefAccAddress(
-    programId,
-    Buffer.from(getCompDefAccOffset("resolve_market")).readUInt32LE()
-  );
+  const baseSeedCompDefAcc = getArciumAccountBaseSeed("ComputationDefinitionAccount");
+  const arciumProgId = getArciumProgAddress();
+
+  // Use SDK's hash-based offsets
+  const privateTradeCompDef = PublicKey.findProgramAddressSync(
+    [baseSeedCompDefAcc, programId.toBuffer(), getCompDefAccOffset("private_trade")],
+    arciumProgId
+  )[0];
+  const batchClearCompDef = PublicKey.findProgramAddressSync(
+    [baseSeedCompDefAcc, programId.toBuffer(), getCompDefAccOffset("batch_clear")],
+    arciumProgId
+  )[0];
+  const resolveMarketCompDef = PublicKey.findProgramAddressSync(
+    [baseSeedCompDefAcc, programId.toBuffer(), getCompDefAccOffset("resolve_market")],
+    arciumProgId
+  )[0];
 
   const [privateTradeInfo, batchClearInfo, resolveMarketInfo] = await Promise.all([
     connection.getAccountInfo(privateTradeCompDef),
@@ -308,15 +352,13 @@ export async function initializeComputationDefinition(
   compDefType: "private_trade" | "batch_clear" | "resolve_market"
 ): Promise<{ initialized: boolean; tx?: string }> {
   const programId = program.programId;
-  const arciumProgramId = new PublicKey('Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp');
 
-  // Manually derive comp def PDA using correct seeds (SDK derives wrong address)
-  // Seeds: [b"ComputationDefinitionAccount", callback_program_id, offset_bytes]
-  const offsetBytes = Buffer.alloc(4);
-  offsetBytes.writeUInt32LE(Buffer.from(getCompDefAccOffset(compDefType)).readUInt32LE());
+  // Use SDK's hash-based offsets
+  const baseSeedCompDefAcc = getArciumAccountBaseSeed("ComputationDefinitionAccount");
+  const compDefOffsetBytes = getCompDefAccOffset(compDefType);
   const [compDefAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('ComputationDefinitionAccount'), programId.toBuffer(), offsetBytes],
-    arciumProgramId
+    [baseSeedCompDefAcc, programId.toBuffer(), compDefOffsetBytes],
+    getArciumProgAddress()
   );
 
   // Use correct hardcoded MXE account (SDK derives wrong address)
@@ -342,7 +384,7 @@ export async function initializeComputationDefinition(
           payer: userPublicKey,
           mxeAccount,
           compDefAccount,
-          arciumProgram: arciumProgramId,
+          arciumProgram: getArciumProgAddress(),
           systemProgram: SystemProgram.programId,
         })
         .rpc({ commitment: "confirmed" });
@@ -353,7 +395,7 @@ export async function initializeComputationDefinition(
           payer: userPublicKey,
           mxeAccount,
           compDefAccount,
-          arciumProgram: arciumProgramId,
+          arciumProgram: getArciumProgAddress(),
           systemProgram: SystemProgram.programId,
         })
         .rpc({ commitment: "confirmed" });
@@ -364,7 +406,7 @@ export async function initializeComputationDefinition(
           payer: userPublicKey,
           mxeAccount,
           compDefAccount,
-          arciumProgram: arciumProgramId,
+          arciumProgram: getArciumProgAddress(),
           systemProgram: SystemProgram.programId,
         })
         .rpc({ commitment: "confirmed" });

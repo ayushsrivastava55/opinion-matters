@@ -17,19 +17,14 @@ use instructions::*;
 
 use constants::*;
 
-// Computation definition offsets - must match Arcium.toml
-const fn comp_def_offset(name: &str) -> u32 {
-    // This is called by Arcium macros at compile time
-    // The actual values come from Arcium.toml
-    match name.as_bytes() {
-        b"private_trade" => 1000,
-        b"batch_clear" => 2000,
-        b"resolve_market" => 3000,
-        _ => 0,
-    }
-}
+// Computation definition offsets are computed by the #[arcium_program] macro
+// using hash-based derivation from the computation names
+// These constants are derived at compile time using comp_def_offset()
+const COMP_DEF_OFFSET_PRIVATE_TRADE: u32 = comp_def_offset("private_trade");
+const COMP_DEF_OFFSET_BATCH_CLEAR: u32 = comp_def_offset("batch_clear");
+const COMP_DEF_OFFSET_RESOLVE_MARKET: u32 = comp_def_offset("resolve_market");
 
-declare_id!("DkZ8hXcjyoYTWUDD4VZ35PXP2HHA6bF8XRmSQXoqrprW");
+declare_id!("FxUZ9r65C8RJDSuHSmiryVWUx9ffeWAX9392iuHCxKr7");
 
 // Arcium macros expect an ErrorCode enum with ClusterNotSet at crate root
 // This must be public and at crate level for derive_cluster_pda!() macro
@@ -83,7 +78,10 @@ pub struct SubmitPrivateTrade<'info> {
         address = derive_comp_def_pda!(COMP_DEF_OFFSET_PRIVATE_TRADE)
     )]
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
-    #[account(mut)]
+    #[account(
+        mut,
+        address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet)
+    )]
     pub cluster_account: Account<'info, Cluster>,
     #[account(
         mut,
@@ -144,7 +142,10 @@ pub struct SubmitBatchOrder<'info> {
         address = derive_comp_def_pda!(COMP_DEF_OFFSET_BATCH_CLEAR)
     )]
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
-    #[account(mut)]
+    #[account(
+        mut,
+        address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet)
+    )]
     pub cluster_account: Account<'info, Cluster>,
     #[account(
         mut,
@@ -205,7 +206,10 @@ pub struct SubmitAttestation<'info> {
         address = derive_comp_def_pda!(COMP_DEF_OFFSET_RESOLVE_MARKET)
     )]
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
-    #[account(mut)]
+    #[account(
+        mut,
+        address = derive_cluster_pda!(mxe_account, ErrorCode::ClusterNotSet)
+    )]
     pub cluster_account: Account<'info, Cluster>,
     #[account(
         mut,
@@ -305,7 +309,8 @@ pub struct CreateMarket<'info> {
     /// CHECK: created via CPI; verified against PDA inside handler
     #[account(mut)]
     pub no_mint: UncheckedAccount<'info>,
-    pub collateral_mint: Box<Account<'info, Mint>>,
+    /// CHECK: verified by token program during CPI
+    pub collateral_mint: AccountInfo<'info>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -631,10 +636,21 @@ pub mod private_markets {
     pub fn submit_private_trade(
         ctx: Context<SubmitPrivateTrade>,
         computation_offset: u64,
-        encrypted_order: [u8; 32],
+        ciphertext_amount: [u8; 32],
+        ciphertext_side: [u8; 32],
+        ciphertext_max_price: [u8; 32],
+        nonce: u128,
         client_pubkey: [u8; 32],
     ) -> Result<()> {
-        submit_private_trade_handler(ctx, computation_offset, encrypted_order, client_pubkey)
+        submit_private_trade_handler(
+            ctx,
+            computation_offset,
+            ciphertext_amount,
+            ciphertext_side,
+            ciphertext_max_price,
+            nonce,
+            client_pubkey,
+        )
     }
 
     /// Update CFMM state from private trade computation

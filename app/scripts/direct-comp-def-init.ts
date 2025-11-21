@@ -15,8 +15,8 @@ async function main() {
   const wallet = Keypair.fromSecretKey(new Uint8Array(keypairData))
   const provider = new AnchorProvider(connection, new Wallet(wallet), { commitment: 'confirmed' })
 
-  const PROGRAM_ID = new PublicKey('7FC1PkQuAizbuWP1fXcHC4pxMsr4NmdBMkLtGnB9c6PR')
-  const ARCIUM_PROGRAM_ID = new PublicKey('BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6')
+  const PROGRAM_ID = new PublicKey('56vrAyPGzgoHGpiaRAsQFXjDgbcCupho1Y6rZ2Rzo6aq')
+  const ARCIUM_PROGRAM_ID = new PublicKey('Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp')
 
   // Load program
   const idlPath = '/Users/ayush/Documents/hackathons/cyberpunk/app/src/idl/private_markets.json'

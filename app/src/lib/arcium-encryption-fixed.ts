@@ -62,8 +62,9 @@ export async function encryptTradeOrder(
 
   // 2. Get MXE public key (per Arcium docs pattern)
   // Note: MXE must be initialized with a valid x25519 public key for encryption to work
-  // IMPORTANT: Use correct hardcoded MXE account because SDK getMXEAccAddress() derives wrong address
-  const correctMxeAccount = new PublicKey("34zXR49QSmNeuoH8LmoKgCJQo7vfATD57iD6Ubo2f5Pz");
+  // Use MXE_ACCOUNT from config (derived via SDK from PROGRAM_ID)
+  const { MXE_ACCOUNT } = await import('../config/program');
+  const correctMxeAccount = MXE_ACCOUNT;
   let mxePublicKey: Uint8Array;
   let mxeKeyValid = false;
 

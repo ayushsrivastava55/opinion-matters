@@ -1,11 +1,12 @@
 [toolchain]
-anchor_version = "0.31.1"
+anchor_version = "0.32.1"
 cluster = "devnet"
 package_manager = "yarn"
 
 [network]
 cluster = "devnet"
-rpc_url = "https://api.devnet.solana.com"
+cluster_offset = 768109697
+rpc_url = "https://devnet.helius-rpc.com/?api-key=cac5129f-2030-484b-b9c9-6776f80ce9e7"
 
 [localnet]
 nodes = 2
@@ -21,13 +22,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-private_markets = "G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro"
+private_markets = "FxUZ9r65C8RJDSuHSmiryVWUx9ffeWAX9392iuHCxKr7"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

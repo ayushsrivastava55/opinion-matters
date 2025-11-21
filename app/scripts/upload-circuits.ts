@@ -25,7 +25,7 @@ async function main() {
     { commitment: 'confirmed' }
   )
 
-  const programId = new PublicKey('7FC1PkQuAizbuWP1fXcHC4pxMsr4NmdBMkLtGnB9c6PR')
+  const programId = new PublicKey('56vrAyPGzgoHGpiaRAsQFXjDgbcCupho1Y6rZ2Rzo6aq')
 
   // Circuits to upload
   const circuits = [

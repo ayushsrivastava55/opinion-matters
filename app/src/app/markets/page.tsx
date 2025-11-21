@@ -21,6 +21,7 @@ import { MagicCard } from '@/components/magicui/magic-card'
 import { ShinyButton } from '@/components/magicui/shiny-button'
 import { NoSSR } from '@/components/no-ssr'
 import { WalletButton } from '@/components/wallet-button'
+import { HeaderStatus } from '@/components/header-status'
 import type { MarketRecord, MarketResolutionState } from '@/lib/market-types'
 import { getAnchorProgram } from '@/lib/anchor-client'
 import { submitPrivateTrade } from '@/lib/trading-utils'
@@ -180,6 +181,8 @@ export default function MarketsPage() {
   const [tradingMarket, setTradingMarket] = useState<MarketRecord | null>(null)
   const [tradeBusy, setTradeBusy] = useState(false)
   const [tradeError, setTradeError] = useState<string | null>(null)
+  const [tradeStatus, setTradeStatus] = useState<'idle' | 'submitting' | 'submitted' | 'failed'>('idle')
+  const [tradeTxSig, setTradeTxSig] = useState<string | null>(null)
   const [tradeSide, setTradeSide] = useState<'YES' | 'NO'>('YES')
   const [tradeAmount, setTradeAmount] = useState<number>(10)
   const deferredMarkets = useDeferredValue(markets)
@@ -214,7 +217,7 @@ export default function MarketsPage() {
       } catch (err) {
         if (err instanceof DOMException && err.name === 'AbortError') return
         console.error('Failed to load markets from API', err)
-        setError('Unable to sync markets from Neon. Try refreshing in a moment.')
+        setError('Unable to sync markets right now. Try refreshing in a moment.')
       } finally {
         if (!signal?.aborted) {
           setLoading(false)
@@ -242,6 +245,8 @@ export default function MarketsPage() {
     if (!tradingMarket || !wallet.publicKey) return
     setTradeBusy(true)
     setTradeError(null)
+    setTradeStatus('submitting')
+    setTradeTxSig(null)
     try {
       const program = await getAnchorProgram(connection, wallet as any)
       // Preflight: ensure market exists on-chain to avoid wallet sim reverts
@@ -264,7 +269,8 @@ export default function MarketsPage() {
       )
 
       console.log('Trade submitted successfully:', tx)
-      setTradingMarket(null)
+      setTradeStatus('submitted')
+      setTradeTxSig(tx)
       // Refresh list after submit
       loadMarkets()
     } catch (e: any) {
@@ -282,6 +288,7 @@ export default function MarketsPage() {
           ? 'This market is temporarily unavailable. Please try again later.'
           : userMessage
       )
+      setTradeStatus('failed')
     } finally {
       setTradeBusy(false)
     }
@@ -451,6 +458,7 @@ export default function MarketsPage() {
                 </a>
               </div>
               <div className="flex items-center gap-3">
+                <HeaderStatus />
                 <NoSSR fallback={<div className="h-10 w-20 animate-pulse rounded-full bg-white/10" />}>
                   <WalletButton className="!bg-white/10 !backdrop-blur-xl !px-4 !py-2 !text-sm !text-white hover:!bg-white/20" />
                 </NoSSR>
@@ -468,7 +476,7 @@ export default function MarketsPage() {
                   className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs font-medium uppercase tracking-[0.4em] text-white/60"
                 >
                   <BarChart3 className="h-4 w-4 text-orange-300" />
-                  Live markets · Neon synced
+                  Live markets · On-chain indexed
                 </motion.div>
 
                 <motion.h1
@@ -508,7 +516,7 @@ export default function MarketsPage() {
                   <div>
                     <h2 className="text-3xl font-semibold text-white">Active markets</h2>
                     <p className="text-sm text-white/60">
-                      Real-time markets mirrored from Neon and settled on Solana.
+                      Real-time markets indexed from Solana and settled via our private CFMM.
                     </p>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-white/50">
@@ -558,8 +566,8 @@ export default function MarketsPage() {
                     <div className="text-5xl">📊</div>
                     <h3 className="mt-4 text-xl font-semibold text-white">No markets live right now</h3>
                     <p className="mt-2 text-sm text-white/60">
-                      Run <code className="rounded bg-white/10 px-2 py-1">npm run seed:markets</code> to ingest on-chain markets into your Neon
-                      database.
+                      There are no curated markets available yet. Launch a new market from the app or connect your own indexer
+                      during development.
                     </p>
                     <Link href="/">
                       <ShinyButton type="button" className="mt-6 inline-flex">
@@ -575,8 +583,8 @@ export default function MarketsPage() {
                     <ShieldCheck className="h-12 w-12 text-orange-200" />
                     <h3 className="text-2xl font-semibold text-white">Connect to trade privately</h3>
                     <p className="max-w-2xl text-sm text-white/70">
-                      Markets are loaded straight from Neon but trading requires a Solana wallet connection so we can encrypt your
-                      order flow with Arcium MPC.
+                      Markets are loaded from our off-chain indexer, but trading requires a Solana wallet connection so we can
+                      encrypt your order flow with Arcium MPC.
                     </p>
                     <NoSSR fallback={<div className="h-12 w-32 animate-pulse rounded-full bg-gradient-to-r from-orange-500 via-rose-500 to-amber-400" />}>
                       <WalletButton className="!bg-gradient-to-r !from-orange-500 !via-rose-500 !to-amber-400 !text-white !border-0 !px-6 !py-3" />
@@ -642,6 +650,24 @@ export default function MarketsPage() {
                   className="mt-1 w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-white outline-none focus:border-white/20"
                 />
               </div>
+              {tradeStatus === 'submitting' && (
+                <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-[11px] text-white/70">
+                  Encrypting your order and submitting a private transaction via Arcium…
+                </div>
+              )}
+              {tradeStatus === 'submitted' && tradeTxSig && (
+                <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-2 text-[11px] text-emerald-200">
+                  Private trade submitted.{' '}
+                  <a
+                    href={`https://explorer.solana.com/tx/${tradeTxSig}?cluster=devnet`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline hover:text-emerald-100"
+                  >
+                    View on Solana Explorer
+                  </a>
+                </div>
+              )}
               {tradeError && (
                 <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-200">
                   {tradeError}

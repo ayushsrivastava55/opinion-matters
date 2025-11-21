@@ -17,7 +17,7 @@ async function main() {
   const wallet = Keypair.fromSecretKey(new Uint8Array(keypairData))
   const provider = new AnchorProvider(connection, new Wallet(wallet), { commitment: 'confirmed' })
 
-  const PROGRAM_ID = new PublicKey('7FC1PkQuAizbuWP1fXcHC4pxMsr4NmdBMkLtGnB9c6PR')
+  const PROGRAM_ID = new PublicKey('56vrAyPGzgoHGpiaRAsQFXjDgbcCupho1Y6rZ2Rzo6aq')
   const ARCIUM_PROGRAM_ID = getArciumProgAddress()
 
   const mxeAccount = getMXEAccAddress(PROGRAM_ID)

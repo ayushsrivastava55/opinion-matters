@@ -21,8 +21,10 @@ export const ARCIUM_PROGRAM_ID = new PublicKey(
 // This is no longer needed as we use getMXEAccAddress(programId) directly
 
 // Arcium System Accounts (Devnet)
+// FeePool for Arcium program Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp, cluster offset 1
+// Derived using getFeePoolAccAddress(1) from @arcium-hq/client SDK
 export const ARCIUM_FEE_POOL = new PublicKey(
-  "FeeP11qo1qoqVW16Y2RSgMNmD2cuwVqkLHt4B6QRjpC"
+  "FsWbPQcJQ2cCyr9ndse13fDqds4F2Ezx2WgTL25Dke4M"
 );
 
 export const ARCIUM_CLOCK = new PublicKey(

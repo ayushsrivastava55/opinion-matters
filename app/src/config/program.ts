@@ -6,20 +6,22 @@ import { getMXEAccAddress } from "@arcium-hq/client";
  * Program Configuration
  */
 
-// Program IDs (deployed via arcium deploy)
+// Program IDs (fresh program with completed computation definitions)
 export const PROGRAM_ID = new PublicKey(
-  "DkZ8hXcjyoYTWUDD4VZ35PXP2HHA6bF8XRmSQXoqrprW"
+  "3HS7xQrxt6dUHPH4H9bDqvs8N7g4smRoj29ZHUtrRpz4"
 );
 
 export const ARCIUM_PROGRAM_ID = new PublicKey(
   "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
 );
 
-// Arcium MXE Account (Multi-party eXecution Environment)
-// NOTE: SDK getMXEAccAddress() is buggy - hardcoding the actual on-chain address
-// SDK derives: 2hxh9jHVDTAMJErBoQ5RhgB4jKWgikXb41nNCrGo9LEs (wrong!)
-// Actual MXE created by arcium init-mxe: s3XWoMvzwCY93Fk5VNLDzyudNFQafoh1PwnABmscqSH
-export const MXE_ACCOUNT = new PublicKey("34zXR49QSmNeuoH8LmoKgCJQo7vfATD57iD6Ubo2f5Pz");
+// Devnet cluster offset (v0.4.0) — use cluster 1 which has active nodes
+export const ARCIUM_CLUSTER_OFFSET = 1;
+
+// Arcium MXE Account (Multi-party eXecution Environment) - from fresh deployment
+export const MXE_ACCOUNT = new PublicKey(
+  "AUVCVt1aSWVmBVZtURjNpTYdGmqq8x8Tx4HPnX955SNd"
+);
 
 // Arcium System Accounts (Devnet)
 export const ARCIUM_FEE_POOL = new PublicKey(
@@ -30,16 +32,9 @@ export const ARCIUM_CLOCK = new PublicKey(
   "C1ockAccount11111111111111111111111111111111"
 );
 
-// Computation Definition Offsets
-export const COMP_DEF_OFFSETS = {
-  PRIVATE_TRADE: 1000,
-  BATCH_CLEAR: 2000,
-  RESOLVE_MARKET: 3000,
-} as const;
-
 // Network Configuration
-export const NETWORK = "devnet";
-export const RPC_ENDPOINT = "https://api.devnet.solana.com";
+export const NETWORK = "localnet";
+export const RPC_ENDPOINT = "http://localhost:8899";
 
 // PDA Seeds (must match Rust constants)
 export const SEEDS = {

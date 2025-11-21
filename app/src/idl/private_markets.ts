@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/private_markets.json`.
  */
 export type PrivateMarkets = {
-  "address": "G2jEumrainCsS2T1y6aMRgPoXw7LRygC8npNUVk8bzro",
+  "address": "AH6m7tchm3SrjscGu9epRg2MhnpzpKctjK4nueFLwuWN",
   "metadata": {
     "name": "privateMarkets",
     "version": "0.1.0",
@@ -72,7 +72,7 @@ export type PrivateMarkets = {
       "accounts": [
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "compDefAccount"
@@ -272,7 +272,7 @@ export type PrivateMarkets = {
         },
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "systemProgram",
@@ -309,7 +309,7 @@ export type PrivateMarkets = {
         },
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "systemProgram",
@@ -346,7 +346,7 @@ export type PrivateMarkets = {
         },
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "systemProgram",
@@ -414,7 +414,7 @@ export type PrivateMarkets = {
       "accounts": [
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "compDefAccount"
@@ -549,7 +549,7 @@ export type PrivateMarkets = {
       "accounts": [
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "compDefAccount"
@@ -731,11 +731,11 @@ export type PrivateMarkets = {
         {
           "name": "poolAccount",
           "writable": true,
-          "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
+          "address": "FsWbPQcJQ2cCyr9ndse13fDqds4F2Ezx2WgTL25Dke4M"
         },
         {
           "name": "clockAccount",
-          "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
+          "address": "AxygBawEvVwZPetj3yPJb9sGdZvaJYsVguET1zFUQkV"
         },
         {
           "name": "systemProgram",
@@ -743,7 +743,7 @@ export type PrivateMarkets = {
         },
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "market",
@@ -871,11 +871,11 @@ export type PrivateMarkets = {
         {
           "name": "poolAccount",
           "writable": true,
-          "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
+          "address": "FsWbPQcJQ2cCyr9ndse13fDqds4F2Ezx2WgTL25Dke4M"
         },
         {
           "name": "clockAccount",
-          "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
+          "address": "AxygBawEvVwZPetj3yPJb9sGdZvaJYsVguET1zFUQkV"
         },
         {
           "name": "systemProgram",
@@ -883,7 +883,7 @@ export type PrivateMarkets = {
         },
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "market",
@@ -979,11 +979,11 @@ export type PrivateMarkets = {
         {
           "name": "poolAccount",
           "writable": true,
-          "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
+          "address": "FsWbPQcJQ2cCyr9ndse13fDqds4F2Ezx2WgTL25Dke4M"
         },
         {
           "name": "clockAccount",
-          "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
+          "address": "AxygBawEvVwZPetj3yPJb9sGdZvaJYsVguET1zFUQkV"
         },
         {
           "name": "systemProgram",
@@ -991,7 +991,7 @@ export type PrivateMarkets = {
         },
         {
           "name": "arciumProgram",
-          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+          "address": "Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp"
         },
         {
           "name": "market",
@@ -1004,13 +1004,35 @@ export type PrivateMarkets = {
           "type": "u64"
         },
         {
-          "name": "encryptedOrder",
+          "name": "ciphertextAmount",
           "type": {
             "array": [
               "u8",
               32
             ]
           }
+        },
+        {
+          "name": "ciphertextSide",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "ciphertextMaxPrice",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "nonce",
+          "type": "u128"
         },
         {
           "name": "clientPubkey",
@@ -1693,10 +1715,6 @@ export type PrivateMarkets = {
             }
           },
           {
-            "name": "finalizeDuringCallback",
-            "type": "bool"
-          },
-          {
             "name": "cuAmount",
             "type": "u64"
           },
@@ -1858,10 +1876,20 @@ export type PrivateMarkets = {
             }
           },
           {
-            "name": "x25519Pubkey",
+            "name": "utilityPubkeys",
             "type": {
               "defined": {
-                "name": "x25519Pubkey"
+                "name": "setUnset",
+                "generics": [
+                  {
+                    "kind": "type",
+                    "type": {
+                      "defined": {
+                        "name": "utilityPubkeys"
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -2211,6 +2239,9 @@ export type PrivateMarkets = {
           },
           {
             "name": "plaintextFloat"
+          },
+          {
+            "name": "plaintextPoint"
           }
         ]
       }
@@ -2450,6 +2481,39 @@ export type PrivateMarkets = {
       }
     },
     {
+      "name": "setUnset",
+      "generics": [
+        {
+          "kind": "type",
+          "name": "t"
+        }
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "set",
+            "fields": [
+              {
+                "generic": "t"
+              }
+            ]
+          },
+          {
+            "name": "unset",
+            "fields": [
+              {
+                "generic": "t"
+              },
+              {
+                "vec": "bool"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "sharedEncryptedStruct",
       "generics": [
         {
@@ -2518,34 +2582,45 @@ export type PrivateMarkets = {
       }
     },
     {
-      "name": "x25519Pubkey",
+      "name": "utilityPubkeys",
       "type": {
-        "kind": "enum",
-        "variants": [
+        "kind": "struct",
+        "fields": [
           {
-            "name": "set",
-            "fields": [
-              {
-                "array": [
-                  "u8",
-                  32
-                ]
-              }
-            ]
+            "name": "x25519Pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
-            "name": "unset",
-            "fields": [
-              {
-                "array": [
-                  "u8",
-                  32
-                ]
-              },
-              {
-                "vec": "bool"
-              }
-            ]
+            "name": "ed25519VerifyingKey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "elgamalPubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "pubkeyValidityProof",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
           }
         ]
       }

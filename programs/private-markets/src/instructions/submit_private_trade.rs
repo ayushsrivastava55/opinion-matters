@@ -11,7 +11,10 @@ use arcium_client::idl::arcium::types::CallbackAccount; // Import from crate roo
 pub fn handler(
     ctx: Context<SubmitPrivateTrade>,
     computation_offset: u64,
-    encrypted_order: [u8; 32],
+    ciphertext_amount: [u8; 32],
+    ciphertext_side: [u8; 32],
+    ciphertext_max_price: [u8; 32],
+    nonce: u128,
     client_pubkey: [u8; 32],
 ) -> Result<()> {
     let market = &ctx.accounts.market;
@@ -26,14 +29,18 @@ pub fn handler(
     // Build arguments for the encrypted instruction
     // Following blackjack pattern: use Argument::Account() to read on-chain data
     let args = vec![
-        // User's public key (for re-encrypting results back to them)
         Argument::ArcisPubkey(client_pubkey),
-        // Encrypted order data
-        Argument::EncryptedU32(encrypted_order),
-        // Read current CFMM state directly from market account
+        Argument::PlaintextU128(nonce),
+        Argument::EncryptedU64(ciphertext_amount),
+        Argument::EncryptedBool(ciphertext_side),
+        Argument::EncryptedU64(ciphertext_max_price),
         Argument::Account(ctx.accounts.market.key(), MARKET_YES_RESERVES_OFFSET, 8),
         Argument::Account(ctx.accounts.market.key(), MARKET_NO_RESERVES_OFFSET, 8),
-        Argument::Account(ctx.accounts.market.key(), MARKET_CFMM_COMMITMENT_OFFSET, 32),
+        Argument::Account(
+            ctx.accounts.market.key(),
+            MARKET_CFMM_COMMITMENT_OFFSET,
+            32,
+        ),
     ];
 
     // Set the sign PDA bump (required by Arcium)
@@ -45,6 +52,7 @@ pub fn handler(
     // 2. MPC nodes collaboratively execute private_trade circuit
     // 3. Callback instruction will be invoked with results
     queue_computation(
+
         ctx.accounts,
         computation_offset,
         args,

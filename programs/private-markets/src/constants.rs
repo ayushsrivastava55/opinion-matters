@@ -51,15 +51,9 @@ pub const RESOLVER_SEED: &[u8] = b"resolver";
 /// Seed for batch state PDA
 pub const BATCH_SEED: &[u8] = b"batch";
 
-// Arcium Computation Definition Offsets (must match Arcium.toml)
-/// Computation offset for private_trade circuit
-pub const COMP_DEF_OFFSET_PRIVATE_TRADE: u32 = 1000;
-
-/// Computation offset for batch_clear circuit
-pub const COMP_DEF_OFFSET_BATCH_CLEAR: u32 = 2000;
-
-/// Computation offset for resolve_market circuit
-pub const COMP_DEF_OFFSET_RESOLVE_MARKET: u32 = 3000;
+// Arcium Computation Definition Offsets are now defined in lib.rs
+// using the comp_def_offset() function provided by #[arcium_program] macro
+// These compute hash-based offsets from the computation names
 
 // Account field offsets for Argument::Account() usage
 // Market account structure offsets (see state.rs for field layout)

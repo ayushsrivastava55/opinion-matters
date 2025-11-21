@@ -11,10 +11,12 @@
     "seed:markets": "tsx scripts/seed-markets.ts",
     "deploy:market": "DOTENV_CONFIG_PATH=.env.local tsx scripts/deploy-market.ts",
     "create:market": "tsx scripts/create-sample-market.ts",
-    "seed:mock": "tsx scripts/seed-mock-market.ts"
+    "seed:mock": "tsx scripts/seed-mock-market.ts",
+    "init-comp-defs": "tsx scripts/init-comp-defs.ts"
   },
   "dependencies": {
     "@arcium-hq/client": "^0.4.0",
+    "@arcium-hq/reader": "^0.4.0",
     "@coral-xyz/anchor": "^0.32.1",
     "@neondatabase/serverless": "^0.9.5",
     "@noble/curves": "^1.0.0",
@@ -24,12 +26,14 @@
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-react-ui": "^0.9.39",
     "@solana/web3.js": "^1.98.4",
+    "@supabase/supabase-js": "^2.84.0",
     "buffer": "^6.0.3",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.548.0",
     "next": "16.0.1",
+    "pg": "^8.16.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tailwind-merge": "^3.3.1"

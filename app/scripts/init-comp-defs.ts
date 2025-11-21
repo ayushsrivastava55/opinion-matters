@@ -7,10 +7,14 @@ import { promises as fs } from 'node:fs'
 import { resolve } from 'node:path'
 import {
   getMXEAccAddress,
-  getCompDefAccAddress,
+  getArciumProgAddress,
+  getArciumAccountBaseSeed,
   getCompDefAccOffset,
   getClusterAccAddress,
 } from '@arcium-hq/client'
+import {
+  getCorrectClusterAccount,
+} from '../src/lib/arcium-accounts-fixed'
 
 async function getWalletFromDefault(): Promise<Keypair> {
   const home = process.env.HOME || process.env.USERPROFILE || ''
@@ -30,7 +34,7 @@ async function loadProgram(connection: Connection, provider: AnchorProvider): Pr
   ]
 
   // Correct program ID for the deployed program
-  const PROGRAM_ID = new PublicKey('DkZ8hXcjyoYTWUDD4VZ35PXP2HHA6bF8XRmSQXoqrprW')
+  const PROGRAM_ID = new PublicKey('3HS7xQrxt6dUHPH4H9bDqvs8N7g4smRoj29ZHUtrRpz4')
 
   for (const idlPath of possiblePaths) {
     try {
@@ -46,12 +50,6 @@ async function loadProgram(connection: Connection, provider: AnchorProvider): Pr
   }
 
   throw new Error(`Could not find IDL file. Tried: ${possiblePaths.join(', ')}`)
-}
-
-function getOffsetU32(name: 'private_trade' | 'batch_clear' | 'resolve_market'): number {
-  // SDK returns a little-endian buffer; convert to number consistently with frontend
-  const buf = Buffer.from(getCompDefAccOffset(name))
-  return buf.readUInt32LE(0)
 }
 
 async function main() {
@@ -76,21 +74,24 @@ async function main() {
 
   const program = await loadProgram(connection, provider)
   const programId = program.programId
-  const arciumProgramId = new PublicKey('Bv3Fb9VjzjWGfX18QTUcVycAfeLoQ5zZN6vv2g3cTZxp')
 
-  // Use the MXE account we just initialized
-  const mxeAccount = new PublicKey('34zXR49QSmNeuoH8LmoKgCJQo7vfATD57iD6Ubo2f5Pz')
-  const CLUSTER_OFFSET = 1  // From devnet MXE initialization
-  const clusterAccount = getClusterAccAddress(CLUSTER_OFFSET)
+  // Use the SDK to derive MXE account for the freshly deployed program
+  const mxeAccount = getMXEAccAddress(programId)
+  const CLUSTER_OFFSET = 1  // Use cluster offset 1 as per current deployment
+  const clusterAccount = CLUSTER_OFFSET === 1 
+    ? getCorrectClusterAccount()
+    : getClusterAccAddress(CLUSTER_OFFSET)
 
-  // Manually derive comp def PDAs using correct seeds (SDK derives wrong addresses)
-  // Seeds: [b"ComputationDefinitionAccount", callback_program_id, offset_bytes]
+  // Manually derive comp def PDAs using SDK's hash-based offsets
+  // The #[arcium_program] macro computes hash-based offsets from computation names
+  // Seeds: [base_seed, callback_program_id, offset_bytes]
+  // Parent: Arcium program
   const deriveCompDefPDA = (name: 'private_trade' | 'batch_clear' | 'resolve_market') => {
-    const offsetBytes = Buffer.alloc(4)
-    offsetBytes.writeUInt32LE(getOffsetU32(name))
+    const baseSeedCompDefAcc = getArciumAccountBaseSeed("ComputationDefinitionAccount")
+    const offsetBytes = getCompDefAccOffset(name)
     const [pda] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from('ComputationDefinitionAccount'), programId.toBuffer(), offsetBytes],
-      arciumProgramId
+      [baseSeedCompDefAcc, programId.toBuffer(), offsetBytes],
+      getArciumProgAddress()
     )
     return pda
   }
@@ -141,7 +142,7 @@ async function main() {
       }
     } else {
       console.error('\n❌ ERROR: MXE account does not exist!')
-      console.error('   Run: arcium init-mxe --callback-program', programId.toBase58(), '--cluster-offset 1078779259')
+      console.error('   Run: arcium init-mxe --callback-program', programId.toBase58(), '--cluster-offset 768109697')
       process.exit(1)
     }
   } catch (error: any) {
@@ -195,7 +196,7 @@ async function main() {
             payer: authority.publicKey,
             mxeAccount,
             compDefAccount: privateTradeCompDef,
-            arciumProgram: arciumProgramId,
+            arciumProgram: getArciumProgAddress(),
             systemProgram: SystemProgram.programId,
           })
           .signers([authority])
@@ -215,7 +216,7 @@ async function main() {
             payer: authority.publicKey,
             mxeAccount,
             compDefAccount: batchClearCompDef,
-            arciumProgram: arciumProgramId,
+            arciumProgram: getArciumProgAddress(),
             systemProgram: SystemProgram.programId,
           })
           .signers([authority])
@@ -235,7 +236,7 @@ async function main() {
             payer: authority.publicKey,
             mxeAccount,
             compDefAccount: resolveMarketCompDef,
-            arciumProgram: arciumProgramId,
+            arciumProgram: getArciumProgAddress(),
             systemProgram: SystemProgram.programId,
           })
           .signers([authority])
@@ -256,5 +257,3 @@ main().catch((e) => {
   console.error('Failed to initialize computation definitions', e)
   process.exit(1)
 })
-
-
